@@ -3,9 +3,14 @@
   "version": "1.0.0",
   "description": "Digital Ledger for Bangladeshi Shop Owners",
   "main": "server.js",
+
+  "homepage": "https://<Atik Jawad>.github.io/<Halkhata-Digital---WebDev-Project>",
   "scripts": {
     "start": "node server.js",
-    "dev": "nodemon server.js"
+    "dev": "nodemon server.js",
+    "predeploy": "npm run build",
+    "deploy": "gh-pages -d build",
+    "build": "react-scripts build"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
