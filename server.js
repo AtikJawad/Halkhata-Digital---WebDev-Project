@@ -362,7 +362,13 @@ app.get('/api/dashboard', (req, res) => {
 
   const totalDebit = filteredTxns.filter(t => t.type === 'debit').reduce((s, t) => s + t.amount, 0);
   const totalCredit = filteredTxns.filter(t => t.type === 'credit').reduce((s, t) => s + t.amount, 0);
-  const totalReceivable = totalDebit - totalCredit;
+  let totalReceivable = 0;
+  filteredCustomers.forEach(c => {
+    const cTxns  = filteredTxns.filter(t => t.customerId === c.id);
+    const debit  = cTxns.filter(t => t.type === 'debit') .reduce((s, t) => s + t.amount, 0);
+    const credit = cTxns.filter(t => t.type === 'credit').reduce((s, t) => s + t.amount, 0);
+    totalReceivable += Math.max(0, debit - credit);
+  });
 
   const today = new Date();
   const overdue = filteredTxns.filter(t =>

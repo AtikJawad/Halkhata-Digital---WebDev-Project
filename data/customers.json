@@ -1,15 +1,5 @@
 [
   {
-    "id": "f53f4fda-a30e-4ed4-b8d8-18e0bc0092ea",
-    "name": "Awal",
-    "phone": "01774222093",
-    "address": "Dhaka",
-    "creditLimit": 5000,
-    "shop": "প্রধান শাখা",
-    "trustScore": 75,
-    "createdAt": "2026-04-28T05:54:21.358Z"
-  },
-  {
     "id": "05e69f40-289a-4dd3-962a-33f4c6408566",
     "name": "Tasfia",
     "phone": "018925645",
@@ -58,5 +48,25 @@
     "shop": "Maniknagar",
     "trustScore": 75,
     "createdAt": "2026-04-29T20:01:07.279Z"
+  },
+  {
+    "id": "eaef0b4e-cd12-4ff9-add7-0e4cb1a87627",
+    "name": "Sakib ahmed",
+    "phone": "123466799",
+    "address": "Mugda",
+    "creditLimit": 5000,
+    "shop": "Maniknagar",
+    "trustScore": 75,
+    "createdAt": "2026-05-05T20:08:50.925Z"
+  },
+  {
+    "id": "434988a5-9a34-48b8-bb4e-81080ead7933",
+    "name": "Mahadi",
+    "phone": "7896513",
+    "address": "Tejgaon",
+    "creditLimit": 5000,
+    "shop": "Maniknagar",
+    "trustScore": 75,
+    "createdAt": "2026-05-05T20:21:29.689Z"
   }
 ]

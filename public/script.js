@@ -243,10 +243,23 @@ function enterApp(data) {
   $('app').classList.remove('hidden');
   $('sidebar-shop-name').textContent = data.shopName || 'আমার দোকান';
   shopsList = data.shops || ['প্রধান শাখা'];
+
   populateShopDropdowns();
-  loadDashboard();
-  loadOverdueBadge();
+
+  // Restore selected shop
+  const savedShop = localStorage.getItem('selectedShop');
+  if (savedShop) {
+    currentShop = savedShop;
+    const sel = $('global-shop-filter');
+    if (sel) sel.value = savedShop;
+  }
+
+  // Restore last page
+  const savedPage = localStorage.getItem('currentPage') || 'dashboard';
+  navigate(savedPage);
+
   registerServiceWorker();
+  loadOverdueBadge();
   checkDueAlerts();
   applyTranslations();
 }
@@ -278,6 +291,7 @@ window.addEventListener('load', async () => {
 // ─── Navigation ───────────────────────────────────────
 function navigate(page) {
   currentPage = page;
+  localStorage.setItem('currentPage', page);
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
   $(`page-${page}`).classList.add('active');
@@ -319,10 +333,12 @@ function populateShopDropdowns() {
 
 function onShopChange() {
   const value = $('global-shop-filter').value;
+  currentShop = value;
   if (value && value !== 'সব শাখা') {
     localStorage.setItem('selectedShop', value);
+  } else {
+    localStorage.removeItem('selectedShop');
   }
-  currentShop = value;
   navigate(currentPage);
 }
 // ─── Due Date Helpers ─────────────────────────────────
