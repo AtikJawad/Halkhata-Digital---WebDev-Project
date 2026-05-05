@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#1a472a" />
+  <title>হালখাতা ডিজিটাল</title>
+  <link rel="manifest" href="/manifest.json" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@300;400;500;600;700&family=Tiro+Bangla:ital@0;1&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/style.css" />
+</head>
+<body>
+
+<!-- ═══════════ MAIN APP ═══════════ -->
+<div id="app" class="app hidden">
+
+  <!-- Sidebar -->
+  <nav class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-logo">খ</div>
+      <div>
+        <div class="sidebar-title">হালখাতা</div>
+        <div class="sidebar-shop" id="sidebar-shop-name">লোড হচ্ছে...</div>
+      </div>
+    </div>
+
+    <div class="shop-selector-wrap">
+      <label class="shop-selector-label">শাখা</label>
+      <select id="global-shop-filter" class="shop-selector" onchange="onShopChange()">
+        <option value="">সব শাখা</option>
+      </select>
+    </div>
+
+    <ul class="nav-menu">
+      <li class="nav-item active" data-page="dashboard" onclick="navigate('dashboard')">
+      <span class="nav-icon">📊</span><span data-i18n="dashboard">ড্যাশবোর্ড</span>
+      </li>
+      <li class="nav-item" data-page="customers" onclick="navigate('customers')">
+        <span class="nav-icon">👥</span><span data-i18n="customers">খদ্দের</span>
+      </li>
+      <li class="nav-item" data-page="transactions" onclick="navigate('transactions')">
+        <span class="nav-icon">💰</span><span data-i18n="transactions">লেনদেন</span>
+      </li>
+      <li class="nav-item" data-page="overdue" onclick="navigate('overdue')">
+        <span class="nav-icon">⚠️</span><span data-i18n="overdue">বকেয়া</span>
+        <span class="nav-badge" id="overdue-badge">0</span>
+      </li>
+      <li class="nav-item" data-page="report" onclick="navigate('report')">
+        <span class="nav-icon">📈</span><span data-i18n="monthlyReport">মাসিক রিপোর্ট</span>
+      </li>
+      <li class="nav-item" data-page="settings" onclick="navigate('settings')">
+        <span class="nav-icon">⚙️</span><span data-i18n="settingsTitle">সেটিংস</span>
+      </li>
+    </ul>
+
+    <div class="sidebar-footer">
+      <button id="lang-toggle-sidebar" onclick="toggleLang()"
+        style="width:100%;margin-bottom:0.5rem;padding:0.5rem;
+         background:rgba(255,255,255,0.1);color:rgba(255,255,255,0.8);
+         border:1px solid rgba(255,255,255,0.2);border-radius:6px;
+         cursor:pointer;font-family:'Hind Siliguri',sans-serif;font-size:0.85rem">
+        🌐 EN / বাং
+      </button>
+      <button class="btn-logout" onclick="logout()" data-i18n="logout">লগআউট</button>
+    </div>
+  </nav>
+
+  <!-- Mobile Header -->
+  <header class="mobile-header">
+    <button class="menu-toggle" onclick="toggleSidebar()">☰</button>
+    <span class="mobile-title">হালখাতা ডিজিটাল</span>
+    <span class="offline-indicator" id="offline-badge">অফলাইন</span>
+    <button id="lang-toggle" onclick="toggleLang()"
+      style="background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.3);
+         color:#fff;border-radius:6px;padding:3px 10px;cursor:pointer;
+         font-family:'Hind Siliguri',sans-serif;font-size:0.8rem">
+        🌐 EN
+    </button>
+  </header>
+
+  <!-- Page Content -->
+  <main class="main-content">
+
+    <!-- ── DASHBOARD PAGE ── -->
+    <section id="page-dashboard" class="page active">
+      <div class="page-header">
+        <h2 data-i18n="dashboard">ড্যাশবোর্ড</h2>
+        <button class="btn-primary" onclick="openAddTransaction()" data-i18n="addTransaction">+ নতুন লেনদেন</button>
+      </div>
+
+      <div class="stat-grid">
+        <div class="stat-card stat-receivable">
+          <div class="stat-icon">💵</div>
+          <div class="stat-body">
+            <div class="stat-label" data-i18n="totalReceivable">মোট পাওনা</div>
+            <div class="stat-value" id="stat-receivable">৳০</div>
+          </div>
+        </div>
+        <div class="stat-card stat-paid">
+          <div class="stat-icon">✅</div>
+          <div class="stat-body">
+            <div class="stat-label" data-i18n="totalPaid">মোট আদায়</div>
+            <div class="stat-value" id="stat-paid">৳০</div>
+          </div>
+        </div>
+        <div class="stat-card stat-overdue">
+          <div class="stat-icon">⚠️</div>
+          <div class="stat-body">
+            <div class="stat-label" data-i18n="overdueAmount">মেয়াদ উত্তীর্ণ</div>
+            <div class="stat-value" id="stat-overdue">৳০</div>
+          </div>
+        </div>
+        <div class="stat-card stat-customers">
+          <div class="stat-icon">👥</div>
+          <div class="stat-body">
+            <div class="stat-label" data-i18n="totalCustomers">মোট খদ্দের</div>
+            <div class="stat-value" id="stat-customers">০</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="dashboard-bottom">
+        <div class="recent-txn-card">
+          <h3 data-i18n="recentTransactions">সাম্প্রতিক লেনদেন</h3>
+          <div id="recent-transactions"></div>
+        </div>
+        <div class="quick-actions-card">
+          <h3 data-i18n="quickActions">দ্রুত কাজ</h3>
+          <button class="quick-btn" onclick="navigate('customers'); setTimeout(openAddCustomer, 200)">
+            <span>👤</span> <span data-i18n="quickAddCustomer">নতুন খদ্দের যোগ করুন</span>
+          </button>
+          <button class="quick-btn" onclick="openAddTransaction()">
+            <span>➕</span> <span data-i18n="quickAddTransaction">বাকি লেনদেন রেকর্ড করুন</span>
+          </button>
+          <button class="quick-btn" onclick="navigate('overdue')">
+            <span>📞</span> <span data-i18n="quickViewDue">বকেয়া তালিকা দেখুন</span>
+          </button>
+          <button class="quick-btn" onclick="exportBackup()">
+            <span>💾</span> <span data-i18n="quickBackup">ডেটা ব্যাকআপ করুন</span>
+          </button>
+          <button class="quick-btn demo-btn" onclick="loadDemoData()">
+            <span>🧪</span> <span data-i18n="quickLoadDemo">ডেমো ডেটা লোড করুন</span>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── CUSTOMERS PAGE ── -->
+    <section id="page-customers" class="page">
+      <div class="page-header">
+        <h2 data-i18n="customers">খদ্দের তালিকা</h2>
+        <button class="btn-primary" onclick="openAddCustomer()" data-i18n="addCustomer">+ নতুন খদ্দের</button>
+      </div>
+      <div class="search-bar">
+        <input type="text" id="customer-search" placeholder="নাম বা ফোন নম্বর দিয়ে খুঁজুন..." oninput="searchCustomers()" />
+        <span class="search-icon">🔍</span>
+      </div>
+      <div id="customer-list" class="customer-grid"></div>
+    </section>
+
+    <!-- ── TRANSACTIONS PAGE ── -->
+    <section id="page-transactions" class="page">
+      <div class="page-header">
+        <h2 data-i18n="transactions">লেনদেনের খাতা</h2>
+        <button class="btn-primary" onclick="openAddTransaction()" data-i18n="addTransaction">+ নতুন লেনদেন</button>
+      </div>
+      <div class="txn-filters">
+        <input type="date" id="txn-date-filter" onchange="loadTransactions()" />
+        <button class="btn-outline" onclick="clearTxnFilter()">সব দেখুন</button>
+      </div>
+      <div id="transaction-timeline" class="timeline"></div>
+    </section>
+
+    <!-- ── OVERDUE PAGE ── -->
+    <section id="page-overdue" class="page">
+      <div class="page-header">
+        <h2>মেয়াদ উত্তীর্ণ বকেয়া</h2>
+      </div>
+      <div id="overdue-list"></div>
+    </section>
+
+    <!-- ── REPORT PAGE ── -->
+    <section id="page-report" class="page">
+    <div class="page-header">
+      <h2 data-i18n="monthlyReport">মাসিক আয়-ব্যয় রিপোর্ট</h2>
+      <div class="report-controls">
+        <select id="report-year" onchange="loadReport()"></select>
+      </div>
+    </div>
+    <div id="report-chart" class="report-chart-area"></div>
+    <div id="report-table" class="report-table-wrap"></div>
+  </section>
+
+    <!-- ── SETTINGS PAGE ── -->
+    <section id="page-settings" class="page">
+    <div class="page-header"><h2 data-i18n="settingsTitle">সেটিংস</h2></div>
+    <div class="settings-grid">
+
+      <div class="settings-card">
+        <h3 data-i18n="shopInfo">দোকানের তথ্য</h3>
+        <div class="form-group">
+          <label data-i18n="shopName">দোকানের নাম</label>
+          <input type="text" id="setting-shop-name" />
+        </div>
+        <div class="form-group">
+          <label data-i18n="ownerName">মালিকের নাম</label>
+          <input type="text" id="setting-owner-name" />
+        </div>
+      <div class="form-group">
+          <label data-i18n="branches">শাখাসমূহ</label>
+          <div style="display:flex;gap:0.5rem;margin-bottom:0.6rem">
+            <input type="text" id="new-shop-input" placeholder="নতুন শাখার নাম" style="flex:1" />
+            <button type="button" class="btn-primary" onclick="addShop()" data-i18n="add">যোগ করুন</button>
+          </div>
+          <p id="shop-error" style="color:var(--red);font-size:0.8rem;min-height:1rem;margin-bottom:0.4rem"></p>
+          <div id="shop-list"></div>
+        </div>
+        <button class="btn-primary" onclick="saveSettings()" data-i18n="save">সংরক্ষণ করুন</button>
+      </div>
+
+      <div class="settings-card">
+        <h3 data-i18n="changePin">PIN পরিবর্তন</h3>
+        <div class="form-group">
+          <label data-i18n="oldPin">পুরানো PIN</label>
+          <input type="password" id="old-pin" maxlength="4" />
+        </div>
+        <div class="form-group">
+          <label data-i18n="newPin">নতুন PIN</label>
+          <input type="password" id="new-pin" maxlength="4" />
+        </div>
+        <button class="btn-primary" onclick="changePin()" data-i18n="changePin">PIN পরিবর্তন করুন</button>
+      </div>
+
+      <div class="settings-card">
+        <h3 data-i18n="dataManagement">ডেটা ব্যবস্থাপনা</h3>
+        <button class="btn-outline" onclick="exportBackup()" data-i18n="downloadBackup">💾 ব্যাকআপ ডাউনলোড</button>
+        <br/><br/>
+        <button class="btn-outline danger" onclick="confirmClearData()" data-i18n="clearData">🗑️ সব ডেটা মুছুন</button>
+      </div>
+      
+    </div>
+  </section>
+
+  </main>
+</div>
+
+<!-- ═══════════ MODALS ═══════════ -->
+
+<!-- Add Customer Modal -->
+<div id="modal-customer" class="modal-overlay hidden">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 id="customer-modal-title">নতুন খদ্দের যোগ করুন</h3>
+      <button class="modal-close" onclick="closeModal('modal-customer')">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="customer-id" />
+      <div class="form-group">
+        <label data-i18n="name">নাম *</label>
+        <input type="text" id="c-name" placeholder="খদ্দেরের নাম" />
+      </div>
+      <div class="form-group">
+        <label data-i18n="phone">ফোন নম্বর</label>
+        <input type="tel" id="c-phone" placeholder="০১XXXXXXXXX" />
+      </div>
+      <div class="form-group">
+        <label data-i18n="address">ঠিকানা</label>
+        <input type="text" id="c-address" placeholder="বাড়ি/এলাকার ঠিকানা" />
+      </div>
+      <div class="form-group">
+        <label data-i18n="creditLimit">সর্বোচ্চ বাকির সীমা (৳)</label>
+        <input type="number" id="c-limit" placeholder="৫০০০" value="5000" />
+      </div>
+      <div class="form-group">
+        <label data-i18n="branch">শাখা</label>
+        <select id="c-shop"></select>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-outline" onclick="closeModal('modal-customer')" data-i18n="cancel">বাতিল</button>
+      <button class="btn-primary" onclick="saveCustomer()" data-i18n="save">সংরক্ষণ করুন</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add Transaction Modal -->
+<div id="modal-transaction" class="modal-overlay hidden">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>নতুন লেনদেন</h3>
+      <button class="modal-close" onclick="closeModal('modal-transaction')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="txn-type-toggle">
+        <button class="type-btn active" id="type-debit" onclick="setTxnType('debit')">বাকি দিলাম (ধার)</button>
+        <button class="type-btn" id="type-credit" onclick="setTxnType('credit')">টাকা পেলাম</button>
+      </div>
+      <div class="form-group">
+        <label>খদ্দের *</label>
+        <select id="t-customer">
+          <option value="">খদ্দের বাছুন...</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label data-i18n="amount">পরিমাণ (৳) *</label>
+        <div class="input-with-mic">
+          <input type="number" id="t-amount" placeholder="০.০০" />
+          <button class="mic-btn" id="mic-btn" onclick="startVoice()" title="ভয়েসে বলুন">🎤</button>
+        </div>
+        <div id="voice-status" class="voice-status hidden">🎤 বলছি শুনছি...</div>
+      </div>
+      <div class="form-group">
+        <label data-i18n="note">নোট / বিবরণ</label>
+        <input type="text" id="t-note" placeholder="কী কিনলেন লিখুন..." />
+      </div>
+      <div class="form-group" id="due-date-group">
+        <label data-i18n="dueDate">পরিশোধের তারিখ</label>
+        <input type="date" id="t-duedate" />
+      </div>
+      <div class="form-group">
+        <label data-i18n="photo">রসিদ ছবি (ঐচ্ছিক)</label>
+        <input type="file" id="t-photo" accept="image/*" />
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-outline" onclick="closeModal('modal-transaction')" data-i18n="cancel">বাতিল</button>
+      <button class="btn-primary" onclick="saveTransaction()" data-i18n="save">রেকর্ড করুন</button>
+    </div>
+  </div>
+</div>
+
+<!-- Customer Detail Modal -->
+<div id="modal-customer-detail" class="modal-overlay hidden">
+  <div class="modal modal-large">
+    <div class="modal-header">
+      <h3 id="detail-name">খদ্দেরের বিস্তারিত</h3>
+      <button class="modal-close" onclick="closeModal('modal-customer-detail')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="detail-top">
+        <div class="detail-info">
+          <p id="detail-phone">📞 —</p>
+          <p id="detail-address">📍 —</p>
+          <p id="detail-shop">🏪 —</p>
+        </div>
+        <div class="detail-stats">
+          <div class="detail-stat">
+            <div class="detail-stat-label">বকেয়া</div>
+            <div class="detail-stat-value" id="detail-balance">৳০</div>
+          </div>
+          <div class="detail-stat">
+            <div class="detail-stat-label">বিশ্বস্ততা</div>
+            <div class="trust-score-ring">
+              <svg viewBox="0 0 36 36" class="ring-svg">
+                <path class="ring-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
+                <path class="ring-fill" id="detail-trust-ring" stroke-dasharray="0, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
+              </svg>
+              <span id="detail-trust-val">০</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="detail-actions">
+        <button class="btn-primary" onclick="openAddTransactionForCustomer()">+ লেনদেন যোগ করুন</button>
+        <button class="btn-outline" onclick="sendReminder()" data-i18n="reminder">📲 রিমাইন্ডার পাঠান</button>
+        <button class="btn-outline" onclick="printStatement()" data-i18n="print">🖨️ স্টেটমেন্ট প্রিন্ট</button>
+        <button class="btn-outline danger" onclick="deleteCurrentCustomer()" data-i18n="delete">🗑️ মুছুন</button>
+      </div>
+      <h4 style="margin:1.5rem 0 0.75rem">লেনদেনের ইতিহাস</h4>
+      <div id="detail-transactions"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Photo Modal -->
+<div id="modal-photo" class="modal-overlay hidden">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>রসিদ ছবি</h3>
+      <button class="modal-close" onclick="closeModal('modal-photo')">✕</button>
+    </div>
+    <div class="modal-body" style="text-align:center">
+      <img id="photo-preview" src="" style="max-width:100%;border-radius:8px" />
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div id="toast" class="toast hidden"></div>
+
+<!-- Offline sync indicator -->
+<div id="sync-banner" class="sync-banner hidden">
+  <span>📶 অফলাইন লেনদেন সংরক্ষিত হচ্ছে — ইন্টারনেট পেলে সিঙ্ক হবে</span>
+</div>
+
+<script>
+  // Disable mic button immediately if browser has no support
+  if (!window.SpeechRecognition && !window.webkitSpeechRecognition) {
+    document.addEventListener('DOMContentLoaded', () => {
+      const btn = document.getElementById('mic-btn');
+      if (btn) {
+        btn.disabled = true;
+        btn.title = 'এই ব্রাউজারে ভয়েস ইনপুট সাপোর্ট নেই। Chrome ব্যবহার করুন।';
+        btn.style.opacity = '0.4';
+        btn.style.cursor = 'not-allowed';
+      }
+    });
+  }
+</script>
+
+<script src="/script.js"></script>
+</body>
+</html>

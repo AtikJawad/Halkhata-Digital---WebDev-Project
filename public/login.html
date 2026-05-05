@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>হালখাতা ডিজিটাল — লগইন</title>
+  <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;600;700&family=Tiro+Bangla&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --green-dark: #1a472a; --green-mid: #2d6a4f;
+      --amber: #e9c46a; --cream: #fdf6e3;
+      --cream-dark: #f5ead4; --border: #d4c5a9;
+      --red: #e63946; --ink: #1a1a2e; --ink-light: #4a4a6a;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Hind Siliguri', sans-serif;
+      min-height: 100vh; display: flex;
+      align-items: center; justify-content: center;
+      background: linear-gradient(135deg, var(--green-dark), #2d6a4f, #40916c);
+      padding: 1rem;
+    }
+    .card {
+      background: var(--cream); border-radius: 20px;
+      padding: 2.5rem 2rem; width: 100%; max-width: 360px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3); text-align: center;
+    }
+    .logo-icon {
+      width: 72px; height: 72px; background: var(--green-dark);
+      color: var(--amber); border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'Tiro Bangla', serif; font-size: 2.2rem;
+      margin: 0 auto 1rem;
+    }
+    h1 { font-family: 'Tiro Bangla', serif; color: var(--green-dark); font-size: 1.7rem; }
+    .subtitle { color: var(--ink-light); font-size: 0.85rem; margin: 0.3rem 0 2rem; }
+    .form-group { margin-bottom: 1rem; text-align: left; }
+    label { display: block; font-size: 0.85rem; font-weight: 600; color: var(--ink); margin-bottom: 0.35rem; }
+    input {
+      width: 100%; padding: 0.65rem 0.9rem;
+      border: 1.5px solid var(--border); border-radius: 8px;
+      font-family: 'Hind Siliguri', sans-serif; font-size: 1rem;
+      background: #fff; color: var(--ink); transition: border-color 0.2s;
+    }
+    input:focus { outline: none; border-color: #40916c; box-shadow: 0 0 0 3px rgba(64,145,108,0.12); }
+    input[type="password"] { letter-spacing: 0.4rem; font-size: 1.2rem; }
+    .btn {
+      width: 100%; padding: 0.75rem;
+      background: var(--green-dark); color: #fff;
+      border: none; border-radius: 8px; cursor: pointer;
+      font-family: 'Hind Siliguri', sans-serif;
+      font-size: 1rem; font-weight: 700;
+      margin-top: 0.5rem; transition: background 0.15s;
+    }
+    .btn:hover { background: #2d6a4f; }
+    .btn:disabled { opacity: 0.6; cursor: not-allowed; }
+    .error {
+      color: var(--red); font-size: 0.85rem;
+      min-height: 1.2rem; margin: 0.6rem 0 0;
+      display: none;
+    }
+    .error.show { display: block; }
+    .hint { color: var(--ink-light); font-size: 0.75rem; margin-top: 1.2rem; opacity: 0.7; }
+  </style>
+</head>
+<body>
+<div class="card">
+  <div class="logo-icon">খ</div>
+  <h1>হালখাতা ডিজিটাল</h1>
+  <p class="subtitle">আপনার দোকানের ডিজিটাল লেজার</p>
+
+  <div class="form-group">
+    <label>ফোন নম্বর</label>
+    <input type="tel" id="phone" placeholder="01700000000" maxlength="11" />
+  </div>
+  <div class="form-group">
+    <label>৪ সংখ্যার PIN</label>
+    <input type="password" id="pin" placeholder="••••" maxlength="4" inputmode="numeric" />
+  </div>
+  <p class="error" id="error-msg">ভুল নম্বর বা PIN</p>
+  <button class="btn" id="login-btn" onclick="doLogin()">লগইন করুন</button>
+  <p class="hint">ডিফল্ট: 01700000000 / PIN: 1234</p>
+</div>
+
+<script>
+  // If already logged in, go straight to app
+  fetch('/api/auth/check')
+    .then(r => r.json())
+    .then(d => { if (d.loggedIn) window.location.href = '/'; });
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Enter') doLogin();
+  });
+
+  async function doLogin() {
+    const phone = document.getElementById('phone').value.trim();
+    const pin   = document.getElementById('pin').value.trim();
+    const errEl = document.getElementById('error-msg');
+    const btn   = document.getElementById('login-btn');
+
+    errEl.classList.remove('show');
+    if (!phone || !pin) { errEl.textContent = 'ফোন ও PIN দিন'; errEl.classList.add('show'); return; }
+
+    btn.disabled = true;
+    btn.textContent = 'যাচাই হচ্ছে...';
+
+    try {
+      const res = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone, pin })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'লগইন ব্যর্থ');
+      sessionStorage.setItem('halkhata_auth', JSON.stringify(data));
+      window.location.href = '/';
+    } catch (e) {
+      errEl.textContent = e.message;
+      errEl.classList.add('show');
+      btn.disabled = false;
+      btn.textContent = 'লগইন করুন';
+      document.getElementById('pin').value = '';
+      document.getElementById('pin').focus();
+    }
+  }
+</script>
+</body>
+</html>

@@ -1,0 +1,62 @@
+[
+  {
+    "id": "f53f4fda-a30e-4ed4-b8d8-18e0bc0092ea",
+    "name": "Awal",
+    "phone": "01774222093",
+    "address": "Dhaka",
+    "creditLimit": 5000,
+    "shop": "প্রধান শাখা",
+    "trustScore": 75,
+    "createdAt": "2026-04-28T05:54:21.358Z"
+  },
+  {
+    "id": "05e69f40-289a-4dd3-962a-33f4c6408566",
+    "name": "Tasfia",
+    "phone": "018925645",
+    "address": "Lokkhibajar",
+    "creditLimit": 5000,
+    "shop": "প্রধান শাখা",
+    "trustScore": 75,
+    "createdAt": "2026-04-28T08:53:22.249Z"
+  },
+  {
+    "id": "c385e587-7b05-4e7c-b0bb-702174aa1644",
+    "name": "Atik",
+    "phone": "01234567433",
+    "address": "1/34, Munshiganj",
+    "creditLimit": 10000,
+    "shop": "প্রধান শাখা",
+    "trustScore": 75,
+    "createdAt": "2026-04-28T18:38:09.153Z"
+  },
+  {
+    "id": "efe9d882-427a-4064-ad39-452cbdcbced0",
+    "name": "Asma",
+    "phone": "12435436",
+    "address": "",
+    "creditLimit": 5000,
+    "shop": "প্রধান শাখা",
+    "trustScore": 75,
+    "createdAt": "2026-04-29T09:01:33.970Z"
+  },
+  {
+    "id": "abefc0ea-6370-4bb8-b79c-60aa7ff5d1cd",
+    "name": "sajib",
+    "phone": "014589675",
+    "address": "new bazar",
+    "creditLimit": 5000,
+    "shop": "প্রধান শাখা",
+    "trustScore": 75,
+    "createdAt": "2026-04-29T19:10:11.472Z"
+  },
+  {
+    "id": "16d6ae53-29e5-41b8-bd1d-e35ae42be257",
+    "name": "Sonali",
+    "phone": "01234567433",
+    "address": "Maniknagar",
+    "creditLimit": 5000,
+    "shop": "Maniknagar",
+    "trustScore": 75,
+    "createdAt": "2026-04-29T20:01:07.279Z"
+  }
+]
