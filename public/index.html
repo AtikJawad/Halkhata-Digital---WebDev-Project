@@ -1,4 +1,3 @@
-// Created BY ATIK JAWAD --
 <!DOCTYPE html>
 <html lang="bn">
 <head>
@@ -46,6 +45,15 @@
       <li class="nav-item" data-page="overdue" onclick="navigate('overdue')">
         <span class="nav-icon">⚠️</span><span data-i18n="overdue">বকেয়া</span>
         <span class="nav-badge" id="overdue-badge">0</span>
+      </li>
+      <li class="nav-item" data-page="inventory" onclick="navigate('inventory')">
+        <span class="nav-icon">📦</span><span>ইনভেন্টরি</span>
+      </li>
+      <li class="nav-item" data-page="suppliers" onclick="navigate('suppliers')">
+        <span class="nav-icon">🏭</span><span>সরবরাহকারী</span>
+      </li>
+      <li class="nav-item" data-page="expenses" onclick="navigate('expenses')">
+        <span class="nav-icon">🧾</span><span>খরচ</span>
       </li>
       <li class="nav-item" data-page="report" onclick="navigate('report')">
         <span class="nav-icon">📈</span><span data-i18n="monthlyReport">মাসিক রিপোর্ট</span>
@@ -120,6 +128,9 @@
           </div>
         </div>
       </div>
+      <!-- Wallet summary -->
+      <div id="wallet-summary"
+      style="display:flex;gap:0.75rem;margin-bottom:1.2rem;flex-wrap:wrap;overflow-x:auto"></div>
 
       <div class="dashboard-bottom">
         <div class="recent-txn-card">
@@ -180,6 +191,89 @@
       </div>
       <div id="overdue-list"></div>
     </section>
+
+    <!-- ── INVENTORY PAGE ── -->
+    <section id="page-inventory" class="page">
+      <div class="page-header">
+        <h2>ইনভেন্টরি</h2>
+        <button class="btn-primary" onclick="openAddInventory()">+ নতুন পণ্য</button>
+      </div>
+
+      <div class="inv-filter-bar" style="display:flex;gap:0.75rem;margin-bottom:1rem;flex-wrap:wrap">
+        <input type="text" id="inv-search" placeholder="পণ্যের নাম খুঁজুন..."
+          oninput="renderInventory()"
+          style="padding:0.6rem 0.9rem;border:1.5px solid var(--border);border-radius:var(--radius-sm);
+                font-family:'Hind Siliguri',sans-serif;font-size:0.9rem;flex:1;min-width:180px" />
+        <select id="inv-filter" onchange="renderInventory()"
+          style="padding:0.6rem 0.8rem;border:1.5px solid var(--border);border-radius:var(--radius-sm);
+                font-family:'Hind Siliguri',sans-serif;font-size:0.9rem">
+          <option value="all">সব পণ্য</option>
+          <option value="low">কম স্টক</option>
+          <option value="expired">মেয়াদ উত্তীর্ণ</option>
+        </select>
+      </div>
+
+      <div id="inv-summary" style="display:flex;gap:1rem;margin-bottom:1.2rem;flex-wrap:wrap"></div>
+      <div id="inventory-list"></div>
+    </section>
+
+    <!-- ── SUPPLIERS PAGE ── -->
+    <section id="page-suppliers" class="page">
+      <div class="page-header">
+        <h2>সরবরাহকারী লেজার</h2>
+        <button class="btn-primary" onclick="openAddSupplier()">+ নতুন সরবরাহকারী</button>
+      </div>
+      <div id="supplier-list" class="customer-grid"></div>
+    </section>
+
+    <!-- ── SUPPLIER DETAIL PAGE ── -->
+    <section id="page-supplier-detail" class="page">
+      <div class="page-header">
+        <button class="btn-outline" onclick="navigate('suppliers')" style="font-size:0.85rem">← ফিরে যান</button>
+        <button class="btn-primary" onclick="openAddSupplierTxn()">+ লেনদেন যোগ করুন</button>
+      </div>
+      <div id="supplier-detail-top"
+        style="background:#fff;border-radius:var(--radius);padding:1.4rem;
+              margin-bottom:1rem;box-shadow:0 2px 10px var(--shadow)"></div>
+      <h4 style="margin-bottom:0.75rem;color:var(--green-dark);font-family:'Tiro Bangla',serif">লেনদেনের ইতিহাস</h4>
+      <div id="supplier-detail-txns"></div>
+    </section>
+
+    <!-- ── EXPENSES PAGE ── -->
+  <section id="page-expenses" class="page">
+    <div class="page-header">
+      <h2>খরচের হিসাব</h2>
+      <button class="btn-primary" onclick="openAddExpense()">+ নতুন খরচ</button>
+    </div>
+
+    <!-- Summary cards -->
+    <div id="expense-summary" style="display:flex;gap:1rem;margin-bottom:1.2rem;flex-wrap:wrap"></div>
+
+    <!-- Filters -->
+    <div style="display:flex;gap:0.75rem;margin-bottom:1rem;flex-wrap:wrap">
+      <select id="exp-filter-category" onchange="loadExpenses()"
+        style="padding:0.55rem 0.8rem;border:1.5px solid var(--border);border-radius:var(--radius-sm);
+              font-family:'Hind Siliguri',sans-serif;font-size:0.88rem">
+        <option value="">সব ক্যাটাগরি</option>
+        <option>Transportation</option><option>Supplier Purchase</option>
+        <option>Salary</option><option>Electricity</option><option>Rent</option>
+        <option>Internet</option><option>Repair</option><option>Tax</option>
+        <option>Packaging</option><option>Misc</option>
+      </select>
+      <input type="date" id="exp-filter-date" onchange="loadExpenses()"
+        style="padding:0.55rem 0.8rem;border:1.5px solid var(--border);border-radius:var(--radius-sm);
+              font-family:'Hind Siliguri',sans-serif;font-size:0.88rem" />
+      <button class="btn-outline" onclick="clearExpenseFilters()">সব দেখুন</button>
+    </div>
+
+    <!-- Category breakdown -->
+    <div id="expense-category-breakdown"
+      style="background:#fff;border-radius:var(--radius);padding:1rem 1.2rem;
+            margin-bottom:1rem;box-shadow:0 2px 8px var(--shadow);display:none"></div>
+
+    <!-- List -->
+    <div id="expense-list"></div>
+  </section>
 
     <!-- ── REPORT PAGE ── -->
     <section id="page-report" class="page">
@@ -292,38 +386,107 @@
       <h3>নতুন লেনদেন</h3>
       <button class="modal-close" onclick="closeModal('modal-transaction')">✕</button>
     </div>
-    <div class="modal-body">
-      <div class="txn-type-toggle">
-        <button class="type-btn active" id="type-debit" onclick="setTxnType('debit')">বাকি দিলাম (ধার)</button>
-        <button class="type-btn" id="type-credit" onclick="setTxnType('credit')">টাকা পেলাম</button>
-      </div>
+      <div class="modal-body">
+    <!-- Mode toggle -->
+    <div class="txn-type-toggle">
+      <button class="type-btn active" id="mode-sale"     onclick="setTxnMode('sale')">🛒 পণ্য বিক্রি</button>
+      <button class="type-btn"        id="mode-repayment" onclick="setTxnMode('repayment')">💵 বাকি পরিশোধ</button>
+    </div>
+
+    <!-- Customer (both modes) -->
+    <div class="form-group">
+      <label>খদ্দের *</label>
+      <select id="t-customer">
+        <option value="">খদ্দের বাছুন...</option>
+      </select>
+    </div>
+
+    <!-- ── SALE FIELDS ── -->
+    <div id="sale-fields">
       <div class="form-group">
-        <label>খদ্দের *</label>
-        <select id="t-customer">
-          <option value="">খদ্দের বাছুন...</option>
+        <label>পণ্য *</label>
+        <select id="t-product" onchange="onProductChange()">
+          <option value="">পণ্য বাছুন...</option>
         </select>
       </div>
-      <div class="form-group">
-        <label data-i18n="amount">পরিমাণ (৳) *</label>
-        <div class="input-with-mic">
-          <input type="number" id="t-amount" placeholder="০.০০" />
-          <button class="mic-btn" id="mic-btn" onclick="startVoice()" title="ভয়েসে বলুন">🎤</button>
+      <div id="quantity-section" class="form-group hidden">
+        <label>পরিমাণ *</label>
+        <div style="display:flex;gap:0.5rem;align-items:center">
+          <input type="number" id="t-quantity" min="1" placeholder="০"
+            oninput="onQuantityChange()" style="flex:1" />
+          <span id="t-stock-info"
+            style="font-size:0.8rem;color:var(--ink-light);white-space:nowrap;min-width:80px"></span>
         </div>
-        <div id="voice-status" class="voice-status hidden">🎤 বলছি শুনছি...</div>
+        <p id="stock-error"
+          style="color:var(--red);font-size:0.8rem;min-height:1rem;margin-top:0.3rem"></p>
       </div>
       <div class="form-group">
-        <label data-i18n="note">নোট / বিবরণ</label>
-        <input type="text" id="t-note" placeholder="কী কিনলেন লিখুন..." />
+        <label>পরিমাণ (৳) *</label>
+        <input type="number" id="t-amount" placeholder="০.০০" />
       </div>
-      <div class="form-group" id="due-date-group">
-        <label data-i18n="dueDate">পরিশোধের তারিখ</label>
+      <!-- Payment mode inside sale -->
+      <div class="form-group">
+        <label>পেমেন্ট পদ্ধতি</label>
+        <div class="txn-type-toggle" style="margin-bottom:0">
+          <button class="type-btn active" id="pay-cash"   onclick="setPaymentMode('cash')">নগদ</button>
+          <button class="type-btn"        id="pay-credit" onclick="setPaymentMode('credit')">বাকি</button>
+        </div>
+      </div>
+      <div class="form-group hidden" id="sale-due-date-group">
+        <label>পরিশোধের তারিখ</label>
         <input type="date" id="t-duedate" />
       </div>
       <div class="form-group">
-        <label data-i18n="photo">রসিদ ছবি (ঐচ্ছিক)</label>
-        <input type="file" id="t-photo" accept="image/*" />
+        <label>পেমেন্ট মাধ্যম</label>
+        <select id="t-sale-method" class="payment-method-sel">
+          <option value="">বাছুন...</option>
+          <option value="cash">নগদ (Cash)</option>
+          <option value="bkash">বিকাশ</option>
+          <option value="nagad">নগদ (Nagad)</option>
+          <option value="rocket">রকেট</option>
+          <option value="bank">ব্যাংক</option>
+        </select>
       </div>
     </div>
+
+    <!-- ── REPAYMENT FIELDS ── -->
+    <div id="repayment-fields" class="hidden">
+      <div class="form-group">
+        <label>পরিমাণ (৳) *</label>
+        <input type="number" id="t-repay-amount" placeholder="০.০০" />
+        <div class="form-group">
+          <label>পেমেন্ট মাধ্যম</label>
+          <select id="t-repay-method" class="payment-method-sel">
+            <option value="">বাছুন...</option>
+            <option value="cash">নগদ (Cash)</option>
+            <option value="bkash">বিকাশ</option>
+            <option value="nagad">নগদ (Nagad)</option>
+            <option value="rocket">রকেট</option>
+            <option value="bank">ব্যাংক</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- Note (both modes) -->
+    <div class="form-group">
+      <label>নোট (ঐচ্ছিক)</label>
+      <input type="text" id="t-note" placeholder="বিবরণ লিখুন..." />
+    </div>
+
+    <!-- Voice input (sale mode only) -->
+    <div id="voice-section" class="form-group">
+      <div class="input-with-mic" style="margin-top:-0.5rem">
+        <button class="mic-btn" id="mic-btn" onclick="startVoice()" title="ভয়েসে বলুন">🎤</button>
+      </div>
+      <div id="voice-status" class="voice-status hidden">🎤 বলছি শুনছি...</div>
+    </div>
+
+    <div class="form-group">
+      <label>রসিদ ছবি (ঐচ্ছিক)</label>
+      <input type="file" id="t-photo" accept="image/*" />
+    </div>
+      </div>
     <div class="modal-footer">
       <button class="btn-outline" onclick="closeModal('modal-transaction')" data-i18n="cancel">বাতিল</button>
       <button class="btn-primary" onclick="saveTransaction()" data-i18n="save">রেকর্ড করুন</button>
@@ -411,5 +574,196 @@
 </script>
 
 <script src="/script.js"></script>
+
+<!-- Add Inventory Modal -->
+<div id="modal-inventory" class="modal-overlay hidden">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 id="inv-modal-title">নতুন পণ্য যোগ করুন</h3>
+      <button class="modal-close" onclick="closeModal('modal-inventory')">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="inv-id" />
+      <div class="form-group">
+        <label>পণ্যের নাম *</label>
+        <input type="text" id="inv-name" placeholder="যেমন: চাল, তেল, সাবান" />
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem">
+        <div class="form-group">
+          <label>ক্রয় মূল্য (৳)</label>
+          <input type="number" id="inv-buy-price" placeholder="০" />
+        </div>
+        <div class="form-group">
+          <label>বিক্রয় মূল্য (৳)</label>
+          <input type="number" id="inv-sell-price" placeholder="০" />
+        </div>
+      </div>
+      <div class="form-group">
+        <label>পরিমাণ (স্টক)</label>
+        <input type="number" id="inv-quantity" placeholder="০" />
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem">
+        <div class="form-group">
+          <label>ক্রয়ের তারিখ</label>
+          <input type="date" id="inv-buy-date" />
+        </div>
+        <div class="form-group">
+          <label>মেয়াদ শেষের তারিখ</label>
+          <input type="date" id="inv-expiry-date" />
+        </div>
+      </div>
+      <div class="form-group">
+      <label>সরবরাহকারী (ঐচ্ছিক)</label>
+      <select id="inv-supplier">
+        <option value="">সরবরাহকারী বাছুন...</option>
+      </select>
+      </div>
+      <div class="form-group">
+        <label>শাখা</label>
+        <select id="inv-shop"></select>
+      </div>
+
+      <div class="form-group" id="inv-auto-expense-group">
+        <label style="display:flex;align-items:center;gap:0.5rem;cursor:pointer">
+          <input type="checkbox" id="inv-auto-expense" style="width:auto" />
+          স্বয়ংক্রিয়ভাবে খরচ এন্ট্রি তৈরি করুন
+          <span style="font-size:0.75rem;color:var(--ink-light)">(ক্রয় মূল্য × পরিমাণ)</span>
+        </label>
+      </div>
+
+    </div>
+    <div class="modal-footer">
+      <button class="btn-outline" onclick="closeModal('modal-inventory')">বাতিল</button>
+      <button class="btn-primary" onclick="saveInventoryItem()">সংরক্ষণ করুন</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add Supplier Modal -->
+<div id="modal-supplier" class="modal-overlay hidden">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>নতুন সরবরাহকারী যোগ করুন</h3>
+      <button class="modal-close" onclick="closeModal('modal-supplier')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label>নাম *</label>
+        <input type="text" id="sup-name" placeholder="সরবরাহকারীর নাম" />
+      </div>
+      <div class="form-group">
+        <label>ফোন নম্বর</label>
+        <input type="tel" id="sup-phone" placeholder="০১XXXXXXXXX" />
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-outline" onclick="closeModal('modal-supplier')">বাতিল</button>
+      <button class="btn-primary" onclick="saveSupplier()">সংরক্ষণ করুন</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add Supplier Transaction Modal -->
+<div id="modal-supplier-txn" class="modal-overlay hidden">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>সরবরাহকারী লেনদেন</h3>
+      <button class="modal-close" onclick="closeModal('modal-supplier-txn')">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="sup-txn-supplier-id" />
+      <div class="txn-type-toggle">
+        <button class="type-btn active" id="sup-type-debit"  onclick="setSupTxnType('debit')">আমরা দেব (ধার)</button>
+        <button class="type-btn"        id="sup-type-credit" onclick="setSupTxnType('credit')">আমরা দিলাম</button>
+      </div>
+      <div class="form-group">
+        <label>পরিমাণ (৳) *</label>
+        <input type="number" id="sup-txn-amount" placeholder="০" />
+      </div>
+      <div class="form-group">
+        <label>নোট</label>
+        <input type="text" id="sup-txn-note" placeholder="বিবরণ লিখুন..." />
+      </div>
+      <div class="form-group">
+        <label>পেমেন্ট মাধ্যম</label>
+        <select id="sup-txn-method" class="payment-method-sel">
+          <option value="">বাছুন...</option>
+          <option value="cash">নগদ (Cash)</option>
+          <option value="bkash">বিকাশ</option>
+          <option value="nagad">নগদ (Nagad)</option>
+          <option value="rocket">রকেট</option>
+          <option value="bank">ব্যাংক</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-outline" onclick="closeModal('modal-supplier-txn')">বাতিল</button>
+      <button class="btn-primary" onclick="saveSupplierTxn()">রেকর্ড করুন</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add/Edit Expense Modal -->
+<div id="modal-expense" class="modal-overlay hidden">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 id="expense-modal-title">নতুন খরচ যোগ করুন</h3>
+      <button class="modal-close" onclick="closeModal('modal-expense')">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="exp-id" />
+      <div class="form-group">
+        <label>খরচের শিরোনাম *</label>
+        <input type="text" id="exp-title" placeholder="যেমন: বিদ্যুৎ বিল, ভাড়া" />
+      </div>
+      <div class="form-group">
+        <label>ক্যাটাগরি</label>
+        <select id="exp-category">
+          <option>Transportation</option><option>Supplier Purchase</option>
+          <option>Salary</option><option>Electricity</option><option>Rent</option>
+          <option>Internet</option><option>Repair</option><option>Tax</option>
+          <option>Packaging</option><option>Misc</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>পরিমাণ (৳) *</label>
+        <input type="number" id="exp-amount" placeholder="০" />
+      </div>
+      <div class="form-group">
+        <label>তারিখ</label>
+        <input type="date" id="exp-date" />
+      </div>
+      <div class="form-group">
+        <label>শাখা</label>
+        <select id="exp-shop"></select>
+      </div>
+      <div class="form-group">
+        <label>নোট</label>
+        <input type="text" id="exp-note" placeholder="অতিরিক্ত বিবরণ..." />
+      </div>
+
+      <div class="form-group">
+        <label>পেমেন্ট মাধ্যম</label>
+        <select id="exp-method" class="payment-method-sel">
+          <option value="">বাছুন...</option>
+          <option value="cash">নগদ (Cash)</option>
+          <option value="bkash">বিকাশ</option>
+          <option value="nagad">নগদ (Nagad)</option>
+          <option value="rocket">রকেট</option>
+          <option value="bank">ব্যাংক</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>রসিদ ছবি (ঐচ্ছিক)</label>
+        <input type="file" id="exp-photo" accept="image/*" />
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-outline" onclick="closeModal('modal-expense')">বাতিল</button>
+      <button class="btn-primary" onclick="saveExpense()">সংরক্ষণ করুন</button>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>

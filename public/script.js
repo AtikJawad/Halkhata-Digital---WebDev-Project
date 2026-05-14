@@ -174,6 +174,8 @@ let pinBuffer       = '';
 let shopsList       = ['প্রধান শাখা'];
 let currentShop     = '';
 let isOnline        = navigator.onLine;
+let currentTxnMode    = 'sale';    // 'sale' | 'repayment'
+let currentPayMode    = 'cash';    // 'cash' | 'credit'
 const OFFLINE_QUEUE_KEY = 'halkhata_offline_queue';
 
 // ─── Utility ─────────────────────────────────────────
@@ -304,6 +306,9 @@ function navigate(page) {
     case 'transactions': loadTransactions(); break;
     case 'overdue':      loadOverdue(); break;
     case 'report':       loadReport(); break;
+    case 'inventory': loadInventory(); break;
+    case 'suppliers': loadSuppliers(); break;
+    case 'expenses': loadExpenses(); break;
     case 'settings':     loadSettings(); break;
   }
 }
@@ -372,9 +377,24 @@ async function loadDashboard() {
     const url = `/api/dashboard${currentShop ? `?shop=${encodeURIComponent(currentShop)}` : ''}`;
     const data = await API(url);
     $('stat-receivable').textContent = formatTaka(data.totalReceivable);
-$('stat-paid').textContent       = formatTaka(data.totalPaid);
-$('stat-overdue').textContent    = formatTaka(data.overdueAmount);
-$('stat-customers').textContent  = formatNumber(data.totalCustomers);
+    $('stat-paid').textContent       = formatTaka(data.totalPaid);
+    $('stat-overdue').textContent    = formatTaka(data.overdueAmount);
+    $('stat-customers').textContent  = formatNumber(data.totalCustomers);
+    
+     // Wallet summary
+    const walletEl = $('wallet-summary');
+    if (data.accounts && walletEl) {
+      const ICONS = { cash:'💵', bkash:'📱', nagad:'🟠', rocket:'🚀', bank:'🏦' };
+      walletEl.innerHTML = data.accounts.map(a => `
+        <div class="wallet-card">
+          <span class="wallet-icon">${ICONS[a.id] || '💰'}</span>
+          <div>
+            <div class="wallet-name">${a.name}</div>
+            <div class="wallet-bal ${a.balance < 0 ? 'wallet-neg' : ''}">${formatTaka(a.balance)}</div>
+          </div>
+        </div>
+      `).join('');
+    }
 
     const recentEl = $('recent-transactions');
     if (!data.recentTransactions.length) {
@@ -584,77 +604,220 @@ function clearTxnFilter() {
 
 // ─── Add Transaction Modal ────────────────────────────
 async function openAddTransaction(preselectedCustomerId = null) {
-  setTxnType('debit');
-  $('t-amount').value = '';
-  $('t-note').value = '';
-  $('t-duedate').value = '';
-  $('t-photo').value = '';
+  // Reset mode
+  setTxnMode('sale');
+  setPaymentMode('cash');
 
-  // Populate customer dropdown
+  $('t-amount').value       = '';
+  $('t-repay-amount').value = '';
+  $('t-note').value         = '';
+  $('t-duedate').value      = '';
+  $('t-photo').value        = '';
+  $('t-product').value      = '';
+  $('t-quantity').value     = '';
+  $('stock-error').textContent  = '';
+  $('t-stock-info').textContent = '';
+  $('quantity-section').classList.add('hidden');
+
+  // Reset payment method dropdowns
+  if ($('t-sale-method'))  $('t-sale-method').value  = '';
+  if ($('t-repay-method')) $('t-repay-method').value = '';
+  
+
+  // Customers
   const customers = await API('/api/customers');
   const sel = $('t-customer');
   sel.innerHTML = '<option value="">খদ্দের বাছুন...</option>';
   customers.forEach(c => {
     const opt = document.createElement('option');
-    opt.value = c.id;
+    opt.value       = c.id;
     opt.textContent = `${c.name} — ${c.phone || ''}`;
     if (c.id === preselectedCustomerId) opt.selected = true;
     sel.appendChild(opt);
   });
 
+  await populateProductDropdown();
   openModal('modal-transaction');
+}
+
+function onProductChange() {
+  const sel     = $('t-product');
+  const option  = sel.options[sel.selectedIndex];
+  const section = $('quantity-section');
+  $('stock-error').textContent  = '';
+  $('t-stock-info').textContent = '';
+  $('t-quantity').value         = '';
+  $('t-amount').value           = '';
+
+  if (!sel.value) {
+    section.classList.add('hidden');
+    return;
+  }
+
+  section.classList.remove('hidden');
+  const stock = parseInt(option.dataset.stock) || 0;
+  $('t-stock-info').textContent = `স্টক: ${formatNumber(stock)}`;
+}
+
+function onQuantityChange() {
+  const sel    = $('t-product');
+  const option = sel.options[sel.selectedIndex];
+  const qty    = parseInt($('t-quantity').value) || 0;
+  const errEl  = $('stock-error');
+  errEl.textContent = '';
+
+  if (!sel.value || !option.dataset.sell) return;
+
+  const stock     = parseInt(option.dataset.stock)  || 0;
+  const sellPrice = parseFloat(option.dataset.sell) || 0;
+
+  if (qty > stock) {
+    errEl.textContent   = `পর্যাপ্ত স্টক নেই! মাত্র ${formatNumber(stock)}টি আছে।`;
+    $('t-amount').value = '';
+    return;
+  }
+
+  if (qty > 0) $('t-amount').value = (qty * sellPrice).toFixed(2);
+}
+
+async function populateProductDropdown() {
+  const shop = localStorage.getItem('selectedShop') || '';
+  const url  = `/api/inventory${shop ? `?shop=${encodeURIComponent(shop)}` : ''}`;
+  try {
+    const items = await API(url);
+    const sel   = $('t-product');
+    sel.innerHTML = '<option value="">পণ্য বাছুন (ঐচ্ছিক)...</option>';
+    items
+      .filter(i => i.quantity > 0)
+      .forEach(i => {
+        const opt = document.createElement('option');
+        opt.value           = i.id;
+        opt.textContent     = `${i.name} — ৳${i.sellPrice} (স্টক: ${i.quantity})`;
+        opt.dataset.sell    = i.sellPrice;
+        opt.dataset.stock   = i.quantity;
+        opt.dataset.name    = i.name;
+        sel.appendChild(opt);
+      });
+  } catch {}
 }
 
 function setTxnType(type) {
   currentTxnType = type;
-  $('type-debit').classList.toggle('active', type === 'debit');
+  $('type-debit') .classList.toggle('active', type === 'debit');
   $('type-credit').classList.toggle('active', type === 'credit');
   $('due-date-group').style.display = type === 'debit' ? 'block' : 'none';
+
+  // Product section always visible regardless of type
+  // so both cash sales and credit sales reduce inventory
+  $('product-section').style.display = 'block';
+
+  const hasProduct = !!$('t-product').value;
+  $('quantity-section').classList.toggle('hidden', !hasProduct);
+
+  if (type === 'credit' && !$('t-product').value) {
+    // Pure payment entry — clear product fields
+    $('t-quantity').value        = '';
+    $('stock-error').textContent = '';
+  }
+}
+
+function setTxnMode(mode) {
+  currentTxnMode = mode;
+  $('mode-sale')     .classList.toggle('active', mode === 'sale');
+  $('mode-repayment').classList.toggle('active', mode === 'repayment');
+  $('sale-fields')      .classList.toggle('hidden', mode !== 'sale');
+  $('repayment-fields') .classList.toggle('hidden', mode !== 'repayment');
+  $('voice-section')    .classList.toggle('hidden', mode !== 'sale');
+}
+
+function setPaymentMode(mode) {
+  currentPayMode = mode;
+  $('pay-cash')  .classList.toggle('active', mode === 'cash');
+  $('pay-credit').classList.toggle('active', mode === 'credit');
+  $('sale-due-date-group').classList.toggle('hidden', mode !== 'credit');
 }
 
 async function saveTransaction() {
   const customerId = $('t-customer').value;
-  const amount     = $('t-amount').value;
   if (!customerId) return showToast('খদ্দের বাছুন!', 'error');
-  if (!amount || parseFloat(amount) <= 0) return showToast('পরিমাণ দিন!', 'error');
 
   const selectedShop = localStorage.getItem('selectedShop') || 'প্রধান শাখা';
-  console.log('Saving transaction to shop:', selectedShop);
 
-  const body = {
-  customerId, type: currentTxnType,
-  amount: parseFloat(amount),
-  note: $('t-note').value.trim(),
-  dueDate: $('t-duedate').value || null,
-  shop: selectedShop
-  };
-
-  let txnId = null;
   try {
     if (!isOnline) {
-      queueOfflineTxn(body);
-      showToast('অফলাইন — পরে সিঙ্ক হবে 📶', 'success');
+      showToast('অফলাইন — পরে সিঙ্ক হবে 📶');
       closeModal('modal-transaction');
       return;
     }
-    const txn = await API('/api/transactions', { method: 'POST', body: JSON.stringify(body) });
-    txnId = txn.id;
 
-    // Upload photo if any
-    const photoFile = $('t-photo').files[0];
-    if (photoFile && txnId) {
-      const fd = new FormData();
-      fd.append('photo', photoFile);
-      await fetch(`/api/transactions/${txnId}/photo`, { method: 'POST', body: fd });
+    // ── PRODUCT SALE ─────────────────────────────────────
+    if (currentTxnMode === 'sale') {
+      const productSel = $('t-product');
+      const productOpt = productSel.options[productSel.selectedIndex];
+      const soldQty    = parseInt($('t-quantity').value) || 0;
+      const amount     = parseFloat($('t-amount').value);
+
+      if (!productSel.value)         return showToast('পণ্য বাছুন!',         'error');
+      if (soldQty <= 0)              return showToast('পরিমাণ দিন!',          'error');
+      if (!amount || amount <= 0)    return showToast('মূল্য দিন!',           'error');
+
+      const stock = parseInt(productOpt.dataset.stock) || 0;
+      if (soldQty > stock)           return showToast('পর্যাপ্ত স্টক নেই!',  'error');
+
+      await API('/api/sales', {
+        method: 'POST',
+        body: JSON.stringify({
+          customerId,
+          inventoryId:  productSel.value,
+          soldQuantity: soldQty,
+          amount,
+          paymentMode:  currentPayMode,
+          note:         $('t-note').value.trim() || productOpt.dataset.name,
+          paymentMethod: $('t-sale-method').value || null,
+          dueDate:      currentPayMode === 'credit' ? ($('t-duedate').value || null) : null,
+          shop:         selectedShop
+        })
+      });
+
+      showToast(currentPayMode === 'cash' ? 'নগদ বিক্রি রেকর্ড হয়েছে ✅' : 'বাকিতে বিক্রি রেকর্ড হয়েছে ✅');
     }
 
-    showToast(currentTxnType === 'debit' ? 'বাকি রেকর্ড হয়েছে ✅' : 'পেমেন্ট রেকর্ড হয়েছে ✅');
+    // ── DEBT REPAYMENT ────────────────────────────────────
+    else {
+      const amount = parseFloat($('t-repay-amount').value);
+      if (!amount || amount <= 0) return showToast('পরিমাণ দিন!', 'error');
+
+      const body = {
+        customerId, type: 'credit',
+        amount,
+        note:  $('t-note').value.trim() || 'বাকি পরিশোধ',
+        shop:  selectedShop,
+        dueDate: null,
+        inventoryId:  null,
+        productName:  null,
+        paymentMethod: $('t-repay-method').value || null,
+        soldQuantity: null
+      };
+      const txn = await API('/api/transactions', { method: 'POST', body: JSON.stringify(body) });
+
+      const photoFile = $('t-photo').files[0];
+      if (photoFile && txn.id) {
+        const fd = new FormData();
+        fd.append('photo', photoFile);
+        await fetch(`/api/transactions/${txn.id}/photo`, { method: 'POST', body: fd });
+      }
+
+      showToast('পরিশোধ রেকর্ড হয়েছে ✅');
+    }
+
     closeModal('modal-transaction');
-    if (currentPage === 'dashboard') loadDashboard();
+    if (currentPage === 'dashboard')     loadDashboard();
     else if (currentPage === 'transactions') loadTransactions();
+    else if (currentPage === 'inventory')    loadInventory();
     loadOverdueBadge();
+
   } catch (e) {
-    showToast('লেনদেন সংরক্ষণে সমস্যা হয়েছে', 'error');
+    showToast('রেকর্ড করতে সমস্যা হয়েছে', 'error');
   }
 }
 
@@ -775,42 +938,48 @@ async function loadReport() {
   $('report-chart').innerHTML = chartHTML;
 
   // Table
-  const totalDebit  = data.months.reduce((s, m) => s + m.totalDebit, 0);
-  const totalCredit = data.months.reduce((s, m) => s + m.totalCredit, 0);
+  const totalExpense = data.months.reduce((s, m) => s + m.totalExpense, 0);
+  const totalRevenue = data.months.reduce((s, m) => s + m.totalRevenue, 0);
+  const totalProfit  = data.months.reduce((s, m) => s + m.profit, 0);
+
   const tableHTML = `
     <table class="report-table">
       <thead>
         <tr>
           <th>${t('reportMonth')}</th>
-          <th>${t('reportDebit')}</th>
-          <th>${t('reportCredit')}</th>
-          <th>${t('reportNet')}</th>
+          <th style="color:var(--amber-dark)">বাকি দেওয়া</th>
+          <th style="color:var(--green-light)">আয় (নগদ+পেমেন্ট)</th>
+          <th style="color:var(--red)">খরচ</th>
+          <th>লাভ/ক্ষতি</th>
           <th>${t('reportTxnCount')}</th>
         </tr>
       </thead>
       <tbody>
         ${data.months.map(m => {
-          const net = m.totalCredit - m.totalDebit;
-          const netClass = net >= 0 ? 'net-positive' : 'net-negative';
+          const profitClass = m.profit >= 0 ? 'net-positive' : 'net-negative';
           return `<tr>
             <td>${m.monthName}</td>
             <td style="color:var(--amber-dark)">${formatTaka(m.totalDebit)}</td>
-            <td style="color:var(--green-light)">${formatTaka(m.totalCredit)}</td>
-            <td class="${netClass}">${net >= 0 ? '+' : ''}${formatTaka(net)}</td>
-            <td>${formatNumber(m.transactionCount)}</td>
+            <td style="color:var(--green-light)">${formatTaka(m.totalRevenue)}</td>
+            <td style="color:var(--red)">${formatTaka(m.totalExpense)}</td>
+            <td class="${profitClass}">${m.profit >= 0 ? '+' : ''}${formatTaka(m.profit)}</td>
+            <td>${formatNumber(m.transactionCount + m.expenseCount)}</td>
           </tr>`;
         }).join('')}
       </tbody>
       <tfoot>
         <tr style="font-weight:700;background:var(--cream-dark)">
           <td>${t('reportTotal')}</td>
-          <td>${formatTaka(totalDebit)}</td>
-          <td>${formatTaka(totalCredit)}</td>
-          <td class="${totalCredit - totalDebit >= 0 ? 'net-positive' : 'net-negative'}">${formatTaka(totalCredit - totalDebit)}</td>
+          <td>${formatTaka(data.months.reduce((s,m)=>s+m.totalDebit,0))}</td>
+          <td>${formatTaka(totalRevenue)}</td>
+          <td style="color:var(--red)">${formatTaka(totalExpense)}</td>
+          <td class="${totalProfit >= 0 ? 'net-positive' : 'net-negative'}">
+            ${totalProfit >= 0 ? '+' : ''}${formatTaka(totalProfit)}
+          </td>
           <td></td>
         </tr>
       </tfoot>
-      </table>`;
+    </table>`;
   $('report-table').innerHTML = tableHTML;
 }
 
@@ -850,45 +1019,82 @@ function addShop() {
   const name  = input.value.trim();
 
   errEl.textContent = '';
-  if (!name) { errEl.textContent = 'শাখার নাম দিন'; return; }
-  if (shopsList.includes(name)) { errEl.textContent = 'এই শাখা ইতিমধ্যে আছে'; return; }
+  if (!name)                    { errEl.textContent = 'শাখার নাম দিন';           return; }
+  if (shopsList.includes(name)) { errEl.textContent = 'এই শাখা ইতিমধ্যে আছে';  return; }
 
   shopsList.push(name);
   input.value = '';
   renderShopList();
+  persistShops();   // ← save immediately
 }
 
 function deleteShop(index) {
   const name = shopsList[index];
-  if (!confirm(`"${name}" শাখাটি মুছবেন?`)) return;
+  if (shopsList.length <= 1) {
+    showToast('অন্তত একটি শাখা রাখতে হবে!', 'error');
+    return;
+  }
+  if (!confirm(`"${name}" শাখাটি মুছবেন?\nএই শাখার সব খদ্দের ও ইনভেন্টরি "প্রধান শাখা"-তে চলে যাবে।`)) return;
+
   shopsList.splice(index, 1);
+
+  // If deleted branch was selected, fall back to first branch
+  const saved = localStorage.getItem('selectedShop');
+  if (saved === name) {
+    localStorage.setItem('selectedShop', shopsList[0]);
+    currentShop = shopsList[0];
+  }
+
   renderShopList();
+  persistShops();   // ← save immediately
+}
+
+async function persistShops() {
+  const auth = JSON.parse(sessionStorage.getItem('halkhata_auth') || '{}');
+  try {
+    const updated = await API('/api/auth/setup', {
+      method: 'POST',
+      body: JSON.stringify({
+        shopName:  auth.shopName  || '',
+        ownerName: auth.ownerName || '',
+        shops:     [...shopsList]
+      })
+    });
+    // Sync session + dropdowns
+    auth.shops = updated.shops;
+    sessionStorage.setItem('halkhata_auth', JSON.stringify(auth));
+    populateShopDropdowns();
+    showToast('শাখা আপডেট হয়েছে ✅');
+  } catch {
+    showToast('শাখা সংরক্ষণে সমস্যা হয়েছে', 'error');
+  }
 }
 
 async function saveSettings() {
   const shopName  = $('setting-shop-name').value.trim();
   const ownerName = $('setting-owner-name').value.trim();
-  const shops = [...shopsList];
-  if (!shops.length) { showToast('অন্তত একটি শাখা থাকতে হবে!', 'error'); return; }
 
-  await API('/api/auth/setup', {
-    method: 'POST',
-    body: JSON.stringify({ shopName, ownerName, shops })
-  });
+  // shops are persisted immediately on add/delete — no need to read them here
+  if (!shopsList.length) { showToast('অন্তত একটি শাখা থাকতে হবে!', 'error'); return; }
 
-  shopsList = shops;
-  $('sidebar-shop-name').textContent = shopName;
-  populateShopDropdowns();
-  const gf = $('global-shop-filter');
-  gf.innerHTML = '<option value="">সব শাখা</option>';
-  shops.forEach(s => gf.innerHTML += `<option value="${s}">${s}</option>`);
+  try {
+    await API('/api/auth/setup', {
+      method: 'POST',
+      body: JSON.stringify({ shopName, ownerName, shops: [...shopsList] })
+    });
 
-  const auth = JSON.parse(sessionStorage.getItem('halkhata_auth') || '{}');
-  auth.shopName = shopName;
-  auth.shops = shops;
-  sessionStorage.setItem('halkhata_auth', JSON.stringify(auth));
+    const auth = JSON.parse(sessionStorage.getItem('halkhata_auth') || '{}');
+    auth.shopName  = shopName;
+    auth.ownerName = ownerName;
+    auth.shops     = [...shopsList];
+    sessionStorage.setItem('halkhata_auth', JSON.stringify(auth));
 
-  showToast('সেটিংস সংরক্ষিত হয়েছে ✅');
+    $('sidebar-shop-name').textContent = shopName;
+    populateShopDropdowns();
+    showToast('সেটিংস সংরক্ষিত হয়েছে ✅');
+  } catch {
+    showToast('সংরক্ষণে সমস্যা হয়েছে', 'error');
+  }
 }
 
 async function changePin() {
@@ -1163,4 +1369,626 @@ function updateLangButton(lang) {
   const btn2 = document.getElementById('lang-toggle-sidebar');
   if (btn1) btn1.textContent = label;
   if (btn2) btn2.textContent = `🌐 ${lang === 'bn' ? 'EN / বাং' : 'বাং / EN'}`;
+}
+
+// ═══════════════════════════════════════════════════════
+// INVENTORY
+// ═══════════════════════════════════════════════════════
+let inventoryData = [];
+
+function getItemStatus(item) {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  if (item.expiryDate && new Date(item.expiryDate) < today) return 'expired';
+  if (item.quantity < 10) return 'low';
+  return 'ok';
+}
+
+async function loadInventory() {
+  const url = `/api/inventory${currentShop ? `?shop=${encodeURIComponent(currentShop)}` : ''}`;
+  [inventoryData, suppliersData] = await Promise.all([
+    API(url),
+    API('/api/suppliers')
+  ]);
+  renderInventory();
+}
+
+function renderInventory() {
+  const search    = (document.getElementById('inv-search')?.value || '').toLowerCase();
+  const filter    = document.getElementById('inv-filter')?.value || 'all';
+
+  let items = [...inventoryData];
+  if (search) items = items.filter(i => i.name.toLowerCase().includes(search));
+  if (filter === 'low')     items = items.filter(i => getItemStatus(i) === 'low');
+  if (filter === 'expired') items = items.filter(i => getItemStatus(i) === 'expired');
+
+  // Summary bar
+  const totalItems   = inventoryData.length;
+  const lowCount     = inventoryData.filter(i => getItemStatus(i) === 'low').length;
+  const expiredCount = inventoryData.filter(i => getItemStatus(i) === 'expired').length;
+  const totalValue   = inventoryData.reduce((s, i) => s + (i.buyPrice * i.quantity), 0);
+
+  document.getElementById('inv-summary').innerHTML = `
+    <div style="background:#fff;border-radius:var(--radius);padding:0.9rem 1.2rem;
+                box-shadow:0 2px 8px var(--shadow);display:flex;align-items:center;gap:0.75rem;flex:1;min-width:140px">
+      <span style="font-size:1.5rem">📦</span>
+      <div><div style="font-size:0.78rem;color:var(--ink-light)">মোট পণ্য</div>
+           <div style="font-size:1.2rem;font-weight:700">${formatNumber(totalItems)}</div></div>
+    </div>
+    <div style="background:#fff;border-radius:var(--radius);padding:0.9rem 1.2rem;
+                box-shadow:0 2px 8px var(--shadow);display:flex;align-items:center;gap:0.75rem;flex:1;min-width:140px;
+                border-left:4px solid var(--amber-dark)">
+      <span style="font-size:1.5rem">⚠️</span>
+      <div><div style="font-size:0.78rem;color:var(--ink-light)">কম স্টক</div>
+           <div style="font-size:1.2rem;font-weight:700;color:var(--amber-dark)">${formatNumber(lowCount)}</div></div>
+    </div>
+    <div style="background:#fff;border-radius:var(--radius);padding:0.9rem 1.2rem;
+                box-shadow:0 2px 8px var(--shadow);display:flex;align-items:center;gap:0.75rem;flex:1;min-width:140px;
+                border-left:4px solid var(--red)">
+      <span style="font-size:1.5rem">🚫</span>
+      <div><div style="font-size:0.78rem;color:var(--ink-light)">মেয়াদ উত্তীর্ণ</div>
+           <div style="font-size:1.2rem;font-weight:700;color:var(--red)">${formatNumber(expiredCount)}</div></div>
+    </div>
+    <div style="background:#fff;border-radius:var(--radius);padding:0.9rem 1.2rem;
+                box-shadow:0 2px 8px var(--shadow);display:flex;align-items:center;gap:0.75rem;flex:1;min-width:140px;
+                border-left:4px solid var(--green-light)">
+      <span style="font-size:1.5rem">💰</span>
+      <div><div style="font-size:0.78rem;color:var(--ink-light)">মোট মূল্য</div>
+           <div style="font-size:1.2rem;font-weight:700;color:var(--green-dark)">${formatTaka(totalValue)}</div></div>
+    </div>
+  `;
+
+  const el = document.getElementById('inventory-list');
+  if (!items.length) {
+    el.innerHTML = '<div class="empty-state"><div class="empty-icon">📦</div><p>কোনো পণ্য পাওয়া যায়নি</p></div>';
+    return;
+  }
+
+  el.innerHTML = `
+    <div style="background:#fff;border-radius:var(--radius);overflow:hidden;box-shadow:0 2px 10px var(--shadow)">
+      <table style="width:100%;border-collapse:collapse">
+        <thead>
+          <tr style="background:var(--cream-dark)">
+            <th style="padding:0.75rem 1rem;text-align:left;font-size:0.85rem;color:var(--green-dark)">পণ্যের নাম</th>
+            <th style="padding:0.75rem 1rem;text-align:right;font-size:0.85rem;color:var(--green-dark)">ক্রয়</th>
+            <th style="padding:0.75rem 1rem;text-align:right;font-size:0.85rem;color:var(--green-dark)">বিক্রয়</th>
+            <th style="padding:0.75rem 1rem;text-align:right;font-size:0.85rem;color:var(--green-dark)">স্টক</th>
+            <th style="padding:0.75rem 1rem;text-align:center;font-size:0.85rem;color:var(--green-dark)">মেয়াদ</th>
+            <th style="padding:0.75rem 1rem;text-align:center;font-size:0.85rem;color:var(--green-dark)">অবস্থা</th>
+            <th style="padding:0.75rem 1rem;text-align:center;font-size:0.85rem;color:var(--green-dark)">কাজ</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${items.map(item => {
+            const status = getItemStatus(item);
+            const rowBg  = status === 'expired' ? '#fff8f8' : status === 'low' ? '#fffdf0' : '#fff';
+            const statusHTML = status === 'expired'
+              ? `<span class="due-tag due-tag--overdue">🚫 মেয়াদ শেষ</span>`
+              : status === 'low'
+                ? `<span class="due-tag due-tag--due-soon">⚠️ কম স্টক</span>`
+                : `<span class="due-tag" style="background:var(--green-pale);color:var(--green-dark)">✅ ঠিক আছে</span>`;
+            const profit = item.sellPrice - item.buyPrice;
+            return `
+            <tr style="border-top:1px solid var(--border);background:${rowBg}">
+              <td style="padding:0.75rem 1rem">
+                <div style="font-weight:600;color:var(--ink)">${item.name}</div>
+                <div style="font-size:0.75rem;color:var(--ink-light)">${item.shop || ''}</div>
+              </td>
+              <td style="padding:0.75rem 1rem;text-align:right;font-size:0.9rem">${formatTaka(item.buyPrice)}</td>
+              <td style="padding:0.75rem 1rem;text-align:right;font-size:0.9rem">
+                ${formatTaka(item.sellPrice)}
+                ${profit > 0 ? `<div style="font-size:0.7rem;color:var(--green-light)">+${formatTaka(profit)}</div>` : ''}
+              </td>
+              <td style="padding:0.75rem 1rem;text-align:right;font-weight:700;
+                         color:${item.quantity < 10 ? 'var(--amber-dark)' : 'var(--ink)'}">
+                ${formatNumber(item.quantity)}
+              </td>
+              <td style="padding:0.75rem 1rem;text-align:center;font-size:0.82rem;color:var(--ink-light)">
+                ${item.expiryDate ? formatDateShort(item.expiryDate) : '—'}
+              </td>
+              <td style="padding:0.75rem 1rem;text-align:center">${statusHTML}</td>
+              <td style="padding:0.75rem 1rem;text-align:center;display:flex;gap:0.4rem;justify-content:center">
+                <button onclick="openEditInventory('${item.id}')"
+                  style="background:none;border:1px solid var(--border);border-radius:4px;
+                         padding:3px 8px;cursor:pointer;font-size:0.8rem">✏️</button>
+                <button onclick="deleteInventoryItem('${item.id}')"
+                  style="background:none;border:1px solid var(--red);border-radius:4px;
+                         padding:3px 8px;cursor:pointer;font-size:0.8rem;color:var(--red)">🗑️</button>
+              </td>
+            </tr>`;
+          }).join('')}
+        </tbody>
+      </table>
+    </div>`;
+}
+
+function openAddInventory() {
+  $('inv-modal-title').textContent = 'নতুন পণ্য যোগ করুন';
+  $('inv-id').value          = '';
+  $('inv-name').value        = '';
+  $('inv-buy-price').value   = '';
+  $('inv-sell-price').value  = '';
+  $('inv-quantity').value    = '';
+  $('inv-buy-date').value    = '';
+  $('inv-expiry-date').value = '';
+
+  const shopSel = $('inv-shop');
+  shopSel.innerHTML = '';
+  shopsList.forEach(s => shopSel.innerHTML += `<option value="${s}">${s}</option>`);
+  const saved = localStorage.getItem('selectedShop');
+  if (saved) shopSel.value = saved;
+
+  // Populate supplier dropdown
+  const supSel = document.getElementById('inv-supplier');
+  if (supSel) {
+    supSel.innerHTML = '<option value="">সরবরাহকারী বাছুন...</option>';
+    suppliersData.forEach(s => {
+      supSel.innerHTML += `<option value="${s.id}">${s.name}</option>`;
+    });
+  }
+
+  openModal('modal-inventory');
+}
+
+function openEditInventory(id) {
+  const item = inventoryData.find(i => i.id === id);
+  if (!item) return;
+  $('inv-modal-title').textContent = 'পণ্য সম্পাদনা করুন';
+  $('inv-id').value          = item.id;
+  $('inv-name').value        = item.name;
+  $('inv-buy-price').value   = item.buyPrice;
+  $('inv-sell-price').value  = item.sellPrice;
+  $('inv-quantity').value    = item.quantity;
+  $('inv-buy-date').value    = item.buyDate    ? item.buyDate.split('T')[0]    : '';
+  $('inv-expiry-date').value = item.expiryDate ? item.expiryDate.split('T')[0] : '';
+
+  const shopSel = $('inv-shop');
+  shopSel.innerHTML = '';
+  shopsList.forEach(s => shopSel.innerHTML += `<option value="${s}">${s}</option>`);
+  shopSel.value = item.shop || '';
+
+  openModal('modal-inventory');
+}
+
+async function saveInventoryItem() {
+  const name = $('inv-name').value.trim();
+  if (!name) return showToast('পণ্যের নাম দিন!', 'error');
+
+  const body = {
+    name,
+    buyPrice:   $('inv-buy-price').value,
+    sellPrice:  $('inv-sell-price').value,
+    quantity:   $('inv-quantity').value,
+    buyDate:    $('inv-buy-date').value    || null,
+    expiryDate: $('inv-expiry-date').value || null,
+    shop:       $('inv-shop').value || localStorage.getItem('selectedShop') || 'প্রধান শাখা',
+    supplierId: $('inv-supplier')?.value   || null
+  };
+
+  try {
+    const id = $('inv-id').value;
+    if (id) {
+      await API(`/api/inventory/${id}`, { method: 'PUT', body: JSON.stringify(body) });
+      showToast('পণ্য আপডেট হয়েছে ✅');
+    } else {
+      const saved = await API('/api/inventory', { method: 'POST', body: JSON.stringify(body) });
+
+      // Auto-create expense entry if checkbox is checked
+      if (document.getElementById('inv-auto-expense')?.checked) {
+        const expAmt = (parseFloat(body.buyPrice) || 0) * (parseInt(body.quantity) || 0);
+        if (expAmt > 0) {
+          await API('/api/expenses', {
+            method: 'POST',
+            body: JSON.stringify({
+              title:    `পণ্য ক্রয়: ${body.name}`,
+              category: 'Supplier Purchase',
+              amount:   expAmt,
+              shop:     body.shop,
+              note:     `${body.quantity} × ৳${body.buyPrice}`,
+              date:     body.buyDate || new Date().toISOString().split('T')[0]
+            })
+          });
+        }
+      }
+      showToast('নতুন পণ্য যোগ হয়েছে ✅');
+    }
+    closeModal('modal-inventory');
+    loadInventory();
+  } catch {
+    showToast('সংরক্ষণ করতে সমস্যা হয়েছে', 'error');
+  }
+}
+
+async function deleteInventoryItem(id) {
+  const item = inventoryData.find(i => i.id === id);
+  if (!confirm(`"${item?.name}" মুছবেন?`)) return;
+  await API(`/api/inventory/${id}`, { method: 'DELETE' });
+  showToast('পণ্য মুছে গেছে');
+  loadInventory();
+}
+
+// ═══════════════════════════════════════════════════════
+// SUPPLIERS
+// ═══════════════════════════════════════════════════════
+let suppliersData  = [];
+let currentSupplier = null;
+let currentSupTxnType = 'debit';
+
+async function loadSuppliers() {
+  suppliersData = await API('/api/suppliers');
+  const el = document.getElementById('supplier-list');
+
+  if (!suppliersData.length) {
+    el.innerHTML = '<div class="empty-state" style="grid-column:1/-1"><div class="empty-icon">🏭</div><p>কোনো সরবরাহকারী নেই</p></div>';
+    return;
+  }
+
+  el.innerHTML = suppliersData.map(s => `
+    <div class="customer-card" onclick="loadSupplierDetail('${s.id}')">
+      <div class="customer-card-header">
+        <div>
+          <div class="customer-name">${s.name}</div>
+          <div class="customer-phone">${s.phone || '—'}</div>
+        </div>
+        <span class="trust-badge ${s.balance > 0 ? 'trust-low' : 'trust-high'}">
+          ${s.balance > 0 ? 'বকেয়া আছে' : 'পরিশোধিত'}
+        </span>
+      </div>
+      <div class="customer-balance">
+        <span class="balance-label">আমরা দেব</span>
+        <span class="balance-amount ${s.balance > 0 ? 'balance-positive' : 'balance-zero'}">${formatTaka(s.balance)}</span>
+      </div>
+    </div>
+  `).join('');
+}
+
+async function loadSupplierDetail(id) {
+  try {
+    const s  = await API(`/api/suppliers/${id}`);
+    currentSupplier = s;
+
+    document.getElementById('supplier-detail-top').innerHTML = `
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:1rem">
+        <div>
+          <div style="font-family:'Tiro Bangla',serif;font-size:1.3rem;color:var(--green-dark);font-weight:700">${s.name}</div>
+          <div style="color:var(--ink-light);margin-top:4px">📞 ${s.phone || '—'}</div>
+        </div>
+        <div style="display:flex;gap:1.5rem">
+          <div style="text-align:center">
+            <div style="font-size:0.75rem;color:var(--ink-light)">মোট ধার</div>
+            <div style="font-size:1.2rem;font-weight:700;color:var(--amber-dark)">${formatTaka(s.totalOwed)}</div>
+          </div>
+          <div style="text-align:center">
+            <div style="font-size:0.75rem;color:var(--ink-light)">মোট দিয়েছি</div>
+            <div style="font-size:1.2rem;font-weight:700;color:var(--green-light)">${formatTaka(s.totalPaid)}</div>
+          </div>
+          <div style="text-align:center">
+            <div style="font-size:0.75rem;color:var(--ink-light)">বাকি</div>
+            <div style="font-size:1.2rem;font-weight:700;color:var(--red)">${formatTaka(s.balance)}</div>
+          </div>
+        </div>
+        <div style="display:flex;gap:0.5rem">
+          <button class="btn-outline danger" onclick="deleteSupplier('${s.id}')">🗑️ মুছুন</button>
+        </div>
+      </div>
+    `;
+
+    const txns = s.transactions || [];
+    const txnEl = document.getElementById('supplier-detail-txns');
+    if (!txns.length) {
+      txnEl.innerHTML = '<div class="empty-state"><div class="empty-icon">📋</div><p>কোনো লেনদেন নেই</p></div>';
+    } else {
+      txnEl.innerHTML = txns.map(t => {
+        const isDebit  = t.type === 'debit';
+        const colorCls = isDebit ? 'txn-debit' : 'txn-credit';
+        return `
+        <div class="txn-item ${colorCls}" style="margin-bottom:0.5rem">
+          <div class="txn-indicator"></div>
+          <div class="txn-info">
+            <div class="txn-note">${t.note || (isDebit ? 'ধার নেওয়া' : 'পরিশোধ করা')}</div>
+            <div class="txn-meta">${formatDate(t.date)}</div>
+          </div>
+          <div class="txn-amount">${isDebit ? '+' : '-'}${formatTaka(t.amount)}</div>
+        </div>`;
+      }).join('');
+    }
+
+    // Switch to detail page without saving to nav history
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.getElementById('page-supplier-detail').classList.add('active');
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    document.querySelector('[data-page="suppliers"]')?.classList.add('active');
+  } catch {
+    showToast('লোড করতে সমস্যা হয়েছে', 'error');
+  }
+}
+
+function openAddSupplier() {
+  $('sup-name').value  = '';
+  $('sup-phone').value = '';
+  openModal('modal-supplier');
+}
+
+async function saveSupplier() {
+  const name = $('sup-name').value.trim();
+  if (!name) return showToast('নাম দিন!', 'error');
+  try {
+    await API('/api/suppliers', {
+      method: 'POST',
+      body: JSON.stringify({ name, phone: $('sup-phone').value.trim() })
+    });
+    showToast('সরবরাহকারী যোগ হয়েছে ✅');
+    closeModal('modal-supplier');
+    loadSuppliers();
+  } catch {
+    showToast('সংরক্ষণে সমস্যা হয়েছে', 'error');
+  }
+}
+
+async function deleteSupplier(id) {
+  if (!confirm('এই সরবরাহকারী এবং সব লেনদেন মুছবেন?')) return;
+  await API(`/api/suppliers/${id}`, { method: 'DELETE' });
+  showToast('মুছে গেছে');
+  navigate('suppliers');
+}
+
+function openAddSupplierTxn() {
+  if (!currentSupplier) return;
+  $('sup-txn-supplier-id').value = currentSupplier.id;
+  $('sup-txn-amount').value      = '';
+  $('sup-txn-note').value        = '';
+  setSupTxnType('debit');
+  openModal('modal-supplier-txn');
+}
+
+function setSupTxnType(type) {
+  currentSupTxnType = type;
+  $('sup-type-debit') .classList.toggle('active', type === 'debit');
+  $('sup-type-credit').classList.toggle('active', type === 'credit');
+}
+
+async function saveSupplierTxn() {
+  const amount = $('sup-txn-amount').value;
+  if (!amount || parseFloat(amount) <= 0) return showToast('পরিমাণ দিন!', 'error');
+  try {
+    await API('/api/supplier-transactions', {
+      method: 'POST',
+      body: JSON.stringify({
+        supplierId: $('sup-txn-supplier-id').value,
+        type:   currentSupTxnType,
+        amount: parseFloat(amount),
+        note:   $('sup-txn-note').value.trim(),
+        paymentMethod: $('sup-txn-method').value || null
+      })
+    });
+    showToast(currentSupTxnType === 'debit' ? 'ধার রেকর্ড হয়েছে ✅' : 'পেমেন্ট রেকর্ড হয়েছে ✅');
+    closeModal('modal-supplier-txn');
+    loadSupplierDetail(currentSupplier.id);
+  } catch {
+    showToast('রেকর্ড করতে সমস্যা হয়েছে', 'error');
+  }
+}
+
+// ═══════════════════════════════════════════════════════
+// EXPENSES
+// ═══════════════════════════════════════════════════════
+const EXPENSE_ICONS = {
+  Transportation:     '🚗', 'Supplier Purchase': '📦',
+  Salary:             '👷', Electricity:         '💡',
+  Rent:               '🏠', Internet:            '📶',
+  Repair:             '🔧', Tax:                 '🏛️',
+  Packaging:          '📫', Misc:                '🧾'
+};
+
+const EXPENSE_LABELS_BN = {
+  Transportation:     'পরিবহন',   'Supplier Purchase': 'পণ্য ক্রয়',
+  Salary:             'বেতন',      Electricity:         'বিদ্যুৎ',
+  Rent:               'ভাড়া',     Internet:            'ইন্টারনেট',
+  Repair:             'মেরামত',    Tax:                 'কর',
+  Packaging:          'প্যাকেজিং', Misc:                'অন্যান্য'
+};
+
+let expensesData = [];
+
+async function loadExpenses() {
+  const category = document.getElementById('exp-filter-category')?.value || '';
+  const date     = document.getElementById('exp-filter-date')?.value     || '';
+  const params   = new URLSearchParams();
+  if (currentShop) params.set('shop',     currentShop);
+  if (category)    params.set('category', category);
+  if (date)        params.set('date',     date);
+
+  expensesData = await API(`/api/expenses?${params}`);
+  renderExpenses();
+}
+
+function renderExpenses() {
+  // ── Summary cards ─────────────────────────────────────
+  const total      = expensesData.reduce((s, e) => s + e.amount, 0);
+  const thisMonth  = expensesData.filter(e => {
+    const d = new Date(e.date);
+    const n = new Date();
+    return d.getMonth() === n.getMonth() && d.getFullYear() === n.getFullYear();
+  }).reduce((s, e) => s + e.amount, 0);
+
+  const topCat = Object.entries(
+    expensesData.reduce((acc, e) => { acc[e.category] = (acc[e.category] || 0) + e.amount; return acc; }, {})
+  ).sort((a, b) => b[1] - a[1])[0];
+
+  document.getElementById('expense-summary').innerHTML = `
+    <div style="background:#fff;border-radius:var(--radius);padding:0.9rem 1.2rem;
+                box-shadow:0 2px 8px var(--shadow);display:flex;align-items:center;
+                gap:0.75rem;flex:1;min-width:160px;border-left:4px solid var(--red)">
+      <span style="font-size:1.5rem">🧾</span>
+      <div><div style="font-size:0.78rem;color:var(--ink-light)">মোট খরচ</div>
+           <div style="font-size:1.2rem;font-weight:700;color:var(--red)">${formatTaka(total)}</div></div>
+    </div>
+    <div style="background:#fff;border-radius:var(--radius);padding:0.9rem 1.2rem;
+                box-shadow:0 2px 8px var(--shadow);display:flex;align-items:center;
+                gap:0.75rem;flex:1;min-width:160px;border-left:4px solid var(--amber-dark)">
+      <span style="font-size:1.5rem">📅</span>
+      <div><div style="font-size:0.78rem;color:var(--ink-light)">এই মাসে</div>
+           <div style="font-size:1.2rem;font-weight:700;color:var(--amber-dark)">${formatTaka(thisMonth)}</div></div>
+    </div>
+    <div style="background:#fff;border-radius:var(--radius);padding:0.9rem 1.2rem;
+                box-shadow:0 2px 8px var(--shadow);display:flex;align-items:center;
+                gap:0.75rem;flex:1;min-width:160px;border-left:4px solid var(--green-light)">
+      <span style="font-size:1.5rem">${topCat ? EXPENSE_ICONS[topCat[0]] || '🧾' : '—'}</span>
+      <div><div style="font-size:0.78rem;color:var(--ink-light)">সর্বোচ্চ ক্যাটাগরি</div>
+           <div style="font-size:1rem;font-weight:700">${topCat ? (EXPENSE_LABELS_BN[topCat[0]] || topCat[0]) : '—'}</div></div>
+    </div>
+  `;
+
+  // ── Category breakdown ────────────────────────────────
+  const byCategory = expensesData.reduce((acc, e) => {
+    acc[e.category] = (acc[e.category] || 0) + e.amount;
+    return acc;
+  }, {});
+  const bdEl = document.getElementById('expense-category-breakdown');
+  if (Object.keys(byCategory).length) {
+    bdEl.style.display = 'block';
+    bdEl.innerHTML = `
+      <div style="font-weight:600;color:var(--green-dark);margin-bottom:0.75rem;
+                  font-family:'Tiro Bangla',serif">ক্যাটাগরি অনুযায়ী</div>
+      <div style="display:flex;flex-wrap:wrap;gap:0.5rem">
+        ${Object.entries(byCategory).sort((a,b) => b[1]-a[1]).map(([cat, amt]) => `
+          <div style="background:var(--cream-dark);border-radius:var(--radius-sm);
+                      padding:0.4rem 0.75rem;font-size:0.82rem;display:flex;gap:0.4rem;align-items:center">
+            <span>${EXPENSE_ICONS[cat] || '🧾'}</span>
+            <span>${EXPENSE_LABELS_BN[cat] || cat}</span>
+            <strong>${formatTaka(amt)}</strong>
+          </div>`).join('')}
+      </div>`;
+  } else {
+    bdEl.style.display = 'none';
+  }
+
+  // ── List ──────────────────────────────────────────────
+  const el = document.getElementById('expense-list');
+  if (!expensesData.length) {
+    el.innerHTML = '<div class="empty-state"><div class="empty-icon">🧾</div><p>কোনো খরচ নেই</p></div>';
+    return;
+  }
+
+  el.innerHTML = expensesData.map(e => `
+    <div style="background:#fff;border-radius:var(--radius);padding:1rem 1.2rem;
+                margin-bottom:0.6rem;display:flex;align-items:center;gap:1rem;
+                box-shadow:0 1px 6px var(--shadow);border-left:4px solid var(--red)">
+      <div style="font-size:1.6rem">${EXPENSE_ICONS[e.category] || '🧾'}</div>
+      <div style="flex:1">
+        <div style="font-weight:600;color:var(--ink)">${e.title}</div>
+        <div style="font-size:0.78rem;color:var(--ink-light);margin-top:2px">
+          ${EXPENSE_LABELS_BN[e.category] || e.category} • ${formatDateShort(e.date)} • ${e.shop || ''}
+        </div>
+        ${e.note ? `<div style="font-size:0.78rem;color:var(--ink-light)">${e.note}</div>` : ''}
+      </div>
+      ${e.receiptPhoto
+        ? `<img src="${e.receiptPhoto}" class="txn-photo-thumb"
+               onclick="showPhoto('${e.receiptPhoto}')" />`
+        : ''}
+      <div style="text-align:right">
+        <div style="font-size:1.05rem;font-weight:700;color:var(--red)">${formatTaka(e.amount)}</div>
+        <div style="display:flex;gap:0.3rem;margin-top:0.4rem;justify-content:flex-end">
+          <button onclick="openEditExpense('${e.id}')"
+            style="background:none;border:1px solid var(--border);border-radius:4px;
+                   padding:2px 7px;cursor:pointer;font-size:0.78rem">✏️</button>
+          <button onclick="deleteExpense('${e.id}')"
+            style="background:none;border:1px solid var(--red);border-radius:4px;
+                   padding:2px 7px;cursor:pointer;font-size:0.78rem;color:var(--red)">🗑️</button>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function clearExpenseFilters() {
+  document.getElementById('exp-filter-category').value = '';
+  document.getElementById('exp-filter-date').value     = '';
+  loadExpenses();
+}
+
+function openAddExpense(prefill = {}) {
+  $('expense-modal-title').textContent = 'নতুন খরচ যোগ করুন';
+  $('exp-id').value       = '';
+  $('exp-title').value    = prefill.title    || '';
+  $('exp-category').value = prefill.category || 'Misc';
+  $('exp-amount').value   = prefill.amount   || '';
+  $('exp-note').value     = prefill.note     || '';
+  $('exp-date').value     = new Date().toISOString().split('T')[0];
+  $('exp-photo').value    = '';
+
+  const shopSel = $('exp-shop');
+  shopSel.innerHTML = '';
+  shopsList.forEach(s => shopSel.innerHTML += `<option value="${s}">${s}</option>`);
+  const saved = localStorage.getItem('selectedShop');
+  if (saved) shopSel.value = saved;
+
+  openModal('modal-expense');
+}
+
+function openEditExpense(id) {
+  const e = expensesData.find(x => x.id === id);
+  if (!e) return;
+  $('expense-modal-title').textContent = 'খরচ সম্পাদনা করুন';
+  $('exp-id').value       = e.id;
+  $('exp-title').value    = e.title;
+  $('exp-category').value = e.category;
+  $('exp-amount').value   = e.amount;
+  $('exp-note').value     = e.note || '';
+  $('exp-date').value     = e.date.split('T')[0];
+
+  const shopSel = $('exp-shop');
+  shopSel.innerHTML = '';
+  shopsList.forEach(s => shopSel.innerHTML += `<option value="${s}">${s}</option>`);
+  shopSel.value = e.shop || '';
+
+  openModal('modal-expense');
+}
+
+async function saveExpense() {
+  const title  = $('exp-title').value.trim();
+  const amount = $('exp-amount').value;
+  if (!title)                    return showToast('শিরোনাম দিন!',  'error');
+  if (!amount || amount <= 0)    return showToast('পরিমাণ দিন!',  'error');
+
+  const body = {
+    title, amount,
+    category: $('exp-category').value,
+    shop:     $('exp-shop').value || localStorage.getItem('selectedShop') || 'প্রধান শাখা',
+    note:     $('exp-note').value.trim(),
+    date:     $('exp-date').value || new Date().toISOString().split('T')[0],
+    paymentMethod: $('exp-method').value || null
+  };
+
+  try {
+    const id = $('exp-id').value;
+    let saved;
+    if (id) {
+      saved = await API(`/api/expenses/${id}`, { method: 'PUT', body: JSON.stringify(body) });
+      showToast('খরচ আপডেট হয়েছে ✅');
+    } else {
+      saved = await API('/api/expenses', { method: 'POST', body: JSON.stringify(body) });
+      showToast('খরচ যোগ হয়েছে ✅');
+    }
+
+    // Upload photo if provided
+    const photoFile = $('exp-photo').files[0];
+    if (photoFile && saved.id) {
+      const fd = new FormData();
+      fd.append('photo', photoFile);
+      await fetch(`/api/expenses/${saved.id}/photo`, { method: 'POST', body: fd });
+    }
+
+    closeModal('modal-expense');
+    loadExpenses();
+  } catch {
+    showToast('সংরক্ষণে সমস্যা হয়েছে', 'error');
+  }
+}
+
+async function deleteExpense(id) {
+  if (!confirm('এই খরচ মুছবেন?')) return;
+  await API(`/api/expenses/${id}`, { method: 'DELETE' });
+  showToast('মুছে গেছে');
+  loadExpenses();
 }

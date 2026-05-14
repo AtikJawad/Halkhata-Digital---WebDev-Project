@@ -886,3 +886,52 @@ body {
   border-left: 4px solid var(--amber);
   background: #fffdf0;
 }
+/* ─── Expense category pill colors ───────────────────── */
+.exp-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  background: var(--cream-dark);
+  color: var(--ink);
+}
+
+/* ─── Wallet Cards ───────────────────────────────────── */
+.wallet-card {
+  background: #fff;
+  border-radius: var(--radius);
+  padding: 0.75rem 1.1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  box-shadow: 0 2px 8px var(--shadow);
+  flex: 1;
+  min-width: 130px;
+  border-top: 3px solid var(--green-light);
+  transition: transform 0.15s;
+}
+.wallet-card:hover { transform: translateY(-2px); }
+.wallet-icon  { font-size: 1.5rem; }
+.wallet-name  { font-size: 0.75rem; color: var(--ink-light); }
+.wallet-bal   { font-size: 1rem; font-weight: 700; color: var(--green-dark); }
+.wallet-neg   { color: var(--red); }
+
+/* ─── Payment method select ──────────────────────────── */
+.payment-method-sel {
+  width: 100%;
+  padding: 0.6rem 0.85rem;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-family: 'Hind Siliguri', sans-serif;
+  font-size: 0.95rem;
+  background: #fff;
+  color: var(--ink);
+}
+.payment-method-sel:focus {
+  outline: none;
+  border-color: var(--green-light);
+  box-shadow: 0 0 0 3px rgba(64,145,108,0.1);
+}
