@@ -1,0 +1,130 @@
+[
+  {
+    "id": "7b454fb2-56d4-475a-a6e6-3f37fae15841",
+    "title": "Current bill",
+    "category": "Electricity",
+    "amount": 265.78,
+    "shop": "প্রধান শাখা",
+    "note": "",
+    "receiptPhoto": null,
+    "date": "2026-05-11T00:00:00.000Z",
+    "createdAt": "2026-05-11T19:31:13.856Z"
+  },
+  {
+    "id": "d5595172-1a66-4b6b-9e7a-7c7a5b327555",
+    "title": "পণ্য ক্রয়: wheat (/kg)",
+    "category": "Supplier Purchase",
+    "amount": 900,
+    "shop": "প্রধান শাখা",
+    "note": "20 × ৳45",
+    "receiptPhoto": null,
+    "date": "2026-05-12T00:00:00.000Z",
+    "createdAt": "2026-05-11T19:32:32.156Z"
+  },
+  {
+    "id": "c748c536-2a9f-4d1f-b52b-551ceb24e581",
+    "title": "পণ্য ক্রয়: Mango Bar",
+    "category": "Supplier Purchase",
+    "amount": 700,
+    "shop": "প্রধান শাখা",
+    "note": "100 × ৳7",
+    "receiptPhoto": null,
+    "date": "2026-05-12T00:00:00.000Z",
+    "createdAt": "2026-05-11T19:50:14.380Z"
+  },
+  {
+    "id": "f168a8bb-49c2-422d-82d9-c635ee15c5fd",
+    "title": "Dokan Bhara",
+    "category": "Rent",
+    "amount": 2000,
+    "shop": "Shadarghat",
+    "note": "",
+    "receiptPhoto": null,
+    "date": "2026-05-11T00:00:00.000Z",
+    "createdAt": "2026-05-11T20:07:57.237Z"
+  },
+  {
+    "id": "3cffadde-241a-4368-8e93-1584e646f30e",
+    "title": "পণ্য ক্রয়: Mustard oil",
+    "category": "Supplier Purchase",
+    "amount": 3000,
+    "shop": "প্রধান শাখা",
+    "note": "30 × ৳100",
+    "receiptPhoto": null,
+    "paymentMethod": null,
+    "date": "2026-05-13T00:00:00.000Z",
+    "createdAt": "2026-05-12T19:58:19.465Z"
+  },
+  {
+    "id": "0faa416b-6c4d-4e21-9a21-bf9ba6321815",
+    "title": "পণ্য ক্রয়: rice(/kg)",
+    "category": "Supplier Purchase",
+    "amount": 1200,
+    "shop": "Jagannath",
+    "note": "15 × ৳80",
+    "receiptPhoto": null,
+    "paymentMethod": null,
+    "date": "2026-05-14T00:00:00.000Z",
+    "createdAt": "2026-05-13T19:52:21.907Z"
+  },
+  {
+    "id": "22591a39-725e-43b7-8ef5-ed936d370327",
+    "title": "পণ্য ক্রয়: Mango Bar",
+    "category": "Supplier Purchase",
+    "amount": 700,
+    "shop": "প্রধান শাখা",
+    "note": "100 × ৳7",
+    "receiptPhoto": null,
+    "paymentMethod": null,
+    "date": "2026-05-14T00:00:00.000Z",
+    "createdAt": "2026-05-14T07:14:42.971Z"
+  },
+  {
+    "id": "c7853488-f744-47e9-a9bf-d6392c2e4097",
+    "title": "পণ্য ক্রয়: wheat (/kg)",
+    "category": "Supplier Purchase",
+    "amount": 3000,
+    "shop": "Maniknagar",
+    "note": "50 × ৳60",
+    "receiptPhoto": null,
+    "paymentMethod": null,
+    "date": "2026-05-15T00:00:00.000Z",
+    "createdAt": "2026-05-14T07:16:37.051Z"
+  },
+  {
+    "id": "87717f47-d61b-4428-94e1-5630cefbbf7e",
+    "title": "পণ্য ক্রয়: Face wash",
+    "category": "Supplier Purchase",
+    "amount": 10000,
+    "shop": "Mugda",
+    "note": "50 × ৳200",
+    "receiptPhoto": null,
+    "paymentMethod": null,
+    "date": "2026-05-14T00:00:00.000Z",
+    "createdAt": "2026-05-14T07:28:37.365Z"
+  },
+  {
+    "id": "775c575e-182e-462e-967c-d3c7a9c94f80",
+    "title": "পণ্য ক্রয়: Peanut butter",
+    "category": "Supplier Purchase",
+    "amount": 7000,
+    "shop": "Shadarghat",
+    "note": "35 × ৳200",
+    "receiptPhoto": null,
+    "paymentMethod": null,
+    "date": "2026-05-14T00:00:00.000Z",
+    "createdAt": "2026-05-14T08:06:01.260Z"
+  },
+  {
+    "id": "49034837-6c2b-49e2-ae5f-0164f8d8af09",
+    "title": "পণ্য ক্রয়: Napa",
+    "category": "Supplier Purchase",
+    "amount": 420,
+    "shop": "Mugda",
+    "note": "42 × ৳10",
+    "receiptPhoto": null,
+    "paymentMethod": null,
+    "date": "2026-05-14T00:00:00.000Z",
+    "createdAt": "2026-05-14T08:37:27.899Z"
+  }
+]

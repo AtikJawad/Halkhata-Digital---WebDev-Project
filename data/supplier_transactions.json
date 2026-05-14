@@ -1,0 +1,92 @@
+[
+  {
+    "id": "3cade040-512d-4f99-9cf2-cb0b8aca85ed",
+    "supplierId": "69489c28-04f5-4856-a7ca-8e34f5d486a6",
+    "type": "debit",
+    "amount": 2000,
+    "note": "পণ্য কিনলাম: Egg (/piece) (200 × ৳10)",
+    "date": "2026-05-07T08:36:05.176Z"
+  },
+  {
+    "id": "597b78be-2beb-4b68-b0bb-c13c5ac565ab",
+    "supplierId": "69489c28-04f5-4856-a7ca-8e34f5d486a6",
+    "type": "credit",
+    "amount": 1500,
+    "note": "",
+    "date": "2026-05-07T08:37:14.270Z"
+  },
+  {
+    "id": "0fbf4c7d-372d-4b69-b876-42557fa6145d",
+    "supplierId": "69489c28-04f5-4856-a7ca-8e34f5d486a6",
+    "type": "debit",
+    "amount": 900,
+    "note": "পণ্য কিনলাম: wheat (/kg) (20 × ৳45)",
+    "date": "2026-05-11T19:32:32.152Z"
+  },
+  {
+    "id": "f1f1d3b1-66cf-49dd-a14b-aa8f0e4da8f6",
+    "supplierId": "69489c28-04f5-4856-a7ca-8e34f5d486a6",
+    "type": "credit",
+    "amount": 1400,
+    "note": "",
+    "date": "2026-05-11T19:34:10.156Z"
+  },
+  {
+    "id": "b3510706-7180-4e8e-b2c3-23e4690c3cba",
+    "supplierId": "7420642e-c1cb-41a3-85ba-ed0e737f2f11",
+    "type": "debit",
+    "amount": 700,
+    "note": "পণ্য কিনলাম: Mango Bar (100 × ৳7)",
+    "date": "2026-05-11T19:50:14.376Z"
+  },
+  {
+    "id": "fdd19106-1b28-428a-bb57-91be2e419c49",
+    "supplierId": "7420642e-c1cb-41a3-85ba-ed0e737f2f11",
+    "type": "debit",
+    "amount": 700,
+    "note": "",
+    "date": "2026-05-12T19:56:04.040Z",
+    "paymentMethod": "nagad"
+  },
+  {
+    "id": "2bd32426-a3a0-42a8-bd57-f542e284096a",
+    "supplierId": "7420642e-c1cb-41a3-85ba-ed0e737f2f11",
+    "type": "credit",
+    "amount": 1400,
+    "note": "",
+    "date": "2026-05-12T19:56:32.329Z",
+    "paymentMethod": "nagad"
+  },
+  {
+    "id": "78b2fdc6-a622-4fa5-85d7-f551001e832d",
+    "supplierId": "7420642e-c1cb-41a3-85ba-ed0e737f2f11",
+    "type": "debit",
+    "amount": 3000,
+    "note": "পণ্য কিনলাম: Mustard oil (30 × ৳100)",
+    "date": "2026-05-12T19:58:19.460Z"
+  },
+  {
+    "id": "5151dfaf-48ca-4d96-85a0-91c368431094",
+    "supplierId": "7420642e-c1cb-41a3-85ba-ed0e737f2f11",
+    "type": "debit",
+    "amount": 700,
+    "note": "পণ্য কিনলাম: Mango Bar (100 × ৳7)",
+    "date": "2026-05-14T07:14:42.966Z"
+  },
+  {
+    "id": "2d4fcf76-0f79-409b-9ea7-b7e4229a7945",
+    "supplierId": "69489c28-04f5-4856-a7ca-8e34f5d486a6",
+    "type": "debit",
+    "amount": 3000,
+    "note": "পণ্য কিনলাম: wheat (/kg) (50 × ৳60)",
+    "date": "2026-05-14T07:16:37.048Z"
+  },
+  {
+    "id": "e9c958ab-bfbc-4d5a-855c-1998fb5b1728",
+    "supplierId": "f16be168-e013-4d8a-95bc-01367207018f",
+    "type": "debit",
+    "amount": 7000,
+    "note": "পণ্য কিনলাম: Peanut butter (35 × ৳200)",
+    "date": "2026-05-14T08:06:01.256Z"
+  }
+]

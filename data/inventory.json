@@ -1,0 +1,85 @@
+[
+  {
+    "id": "e7b40188-332c-4023-81a2-bf01eacae3e3",
+    "name": "Protein Powder",
+    "buyPrice": 7000,
+    "sellPrice": 10000,
+    "quantity": 4,
+    "buyDate": "2026-05-07",
+    "expiryDate": "2027-11-18",
+    "shop": "প্রধান শাখা",
+    "createdAt": "2026-05-06T19:34:55.464Z"
+  },
+  {
+    "id": "1a9bb35a-e1ab-45a7-b516-664f1261f0a1",
+    "name": "C4 Preworkout",
+    "buyPrice": 2000,
+    "sellPrice": 2500,
+    "quantity": 6,
+    "buyDate": "2026-05-07",
+    "expiryDate": "2026-05-15",
+    "shop": "প্রধান শাখা",
+    "supplierId": null,
+    "createdAt": "2026-05-07T08:02:04.867Z"
+  },
+  {
+    "id": "c06a365f-4f61-43f5-be8b-a7800abc2c94",
+    "name": "Egg (/piece)",
+    "buyPrice": 10,
+    "sellPrice": 16,
+    "quantity": 190,
+    "buyDate": "2026-05-07",
+    "expiryDate": "2026-05-10",
+    "shop": "Maniknagar",
+    "supplierId": "69489c28-04f5-4856-a7ca-8e34f5d486a6",
+    "createdAt": "2026-05-07T08:36:05.176Z"
+  },
+  {
+    "id": "2c50b5da-2eec-4a90-a5b7-b10c81108c34",
+    "name": "wheat (/kg)",
+    "buyPrice": 45,
+    "sellPrice": 60,
+    "quantity": 19,
+    "buyDate": "2026-05-12",
+    "expiryDate": "2026-05-30",
+    "shop": "প্রধান শাখা",
+    "supplierId": "69489c28-04f5-4856-a7ca-8e34f5d486a6",
+    "createdAt": "2026-05-11T19:32:32.152Z"
+  },
+  {
+    "id": "e078f6ef-dabc-4ecb-b308-0a6eb4def865",
+    "name": "Mango Bar",
+    "buyPrice": 7,
+    "sellPrice": 10,
+    "quantity": 90,
+    "buyDate": "2026-05-12",
+    "expiryDate": "2026-08-13",
+    "shop": "প্রধান শাখা",
+    "supplierId": "7420642e-c1cb-41a3-85ba-ed0e737f2f11",
+    "createdAt": "2026-05-11T19:50:14.376Z"
+  },
+  {
+    "id": "a5cdb0fe-f4de-4b08-b108-8d1ec4c2a7da",
+    "name": "Mustard oil",
+    "buyPrice": 100,
+    "sellPrice": 150,
+    "quantity": 29,
+    "buyDate": "2026-05-13",
+    "expiryDate": "2026-06-06",
+    "shop": "প্রধান শাখা",
+    "supplierId": "7420642e-c1cb-41a3-85ba-ed0e737f2f11",
+    "createdAt": "2026-05-12T19:58:19.460Z"
+  },
+  {
+    "id": "350316cd-b261-40d6-a93f-beb09ca9adfd",
+    "name": "rice(/kg)",
+    "buyPrice": 80,
+    "sellPrice": 120,
+    "quantity": 13,
+    "buyDate": "2026-05-14",
+    "expiryDate": "2026-08-13",
+    "shop": "Jagannath",
+    "supplierId": "78619876-1e51-417c-8612-64b6f5272a39",
+    "createdAt": "2026-05-13T19:52:21.890Z"
+  }
+]

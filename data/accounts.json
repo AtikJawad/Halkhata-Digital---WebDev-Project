@@ -1,0 +1,27 @@
+[
+  {
+    "id": "cash",
+    "name": "নগদ (Cash)",
+    "balance": -330
+  },
+  {
+    "id": "bkash",
+    "name": "বিকাশ",
+    "balance": 310
+  },
+  {
+    "id": "nagad",
+    "name": "নগদ (Nagad)",
+    "balance": -1340
+  },
+  {
+    "id": "rocket",
+    "name": "রকেট",
+    "balance": 160
+  },
+  {
+    "id": "bank",
+    "name": "ব্যাংক",
+    "balance": 30
+  }
+]
