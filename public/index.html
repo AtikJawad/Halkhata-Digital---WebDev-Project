@@ -8,6 +8,7 @@
   <link rel="manifest" href="/manifest.json" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@300;400;500;600;700&family=Tiro+Bangla:ital@0;1&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <link rel="stylesheet" href="/style.css" />
 </head>
 <body>
@@ -171,18 +172,57 @@
       <div id="customer-list" class="customer-grid"></div>
     </section>
 
-    <!-- ── TRANSACTIONS PAGE ── -->
-    <section id="page-transactions" class="page">
-      <div class="page-header">
-        <h2 data-i18n="transactions">লেনদেনের খাতা</h2>
-        <button class="btn-primary" onclick="openAddTransaction()" data-i18n="addTransaction">+ নতুন লেনদেন</button>
+    
+   <!-- ── TRANSACTIONS PAGE ── -->
+   <section id="page-transactions" class="page">
+    <div class="page-header">
+      <h2 data-i18n="transactions">লেনদেনের খাতা</h2>
+      <button class="btn-primary" onclick="openAddTransaction()">+ নতুন লেনদেন</button>
+    </div>
+
+    <!-- ── Filter Bar ── -->
+    <div class="txn-filter-bar">
+      <div class="txn-filter-search">
+        <span class="search-icon">🔍</span>
+        <input type="text" id="txn-search"
+          placeholder="খদ্দের বা পণ্যের নাম খুঁজুন..."
+          oninput="loadTransactions()" />
       </div>
-      <div class="txn-filters">
-        <input type="date" id="txn-date-filter" onchange="loadTransactions()" />
-        <button class="btn-outline" onclick="clearTxnFilter()">সব দেখুন</button>
+      <select id="txn-filter-type" onchange="loadTransactions()" class="txn-filter-sel">
+        <option value="">সব ধরন</option>
+        <option value="debit">বাকিতে কেনা</option>
+        <option value="credit">পরিশোধ</option>
+        <option value="cash_sale">নগদ বিক্রি</option>
+      </select>
+      <select id="txn-filter-method" onchange="loadTransactions()" class="txn-filter-sel">
+        <option value="">সব মাধ্যম</option>
+        <option value="cash">নগদ</option>
+        <option value="bkash">বিকাশ</option>
+        <option value="nagad">নগদ (Nagad)</option>
+        <option value="rocket">রকেট</option>
+        <option value="bank">ব্যাংক</option>
+      </select>
+      <select id="txn-filter-customer" onchange="loadTransactions()" class="txn-filter-sel">
+        <option value="">সব খদ্দের</option>
+      </select>
+      <div style="display:flex;gap:0.4rem;align-items:center">
+        <input type="date" id="txn-date-from" onchange="loadTransactions()"
+          style="padding:0.5rem 0.6rem;border:1.5px solid var(--border);
+                border-radius:var(--radius-sm);font-family:'Hind Siliguri',sans-serif;font-size:0.85rem" />
+        <span style="color:var(--ink-light);font-size:0.8rem">—</span>
+        <input type="date" id="txn-date-to" onchange="loadTransactions()"
+          style="padding:0.5rem 0.6rem;border:1.5px solid var(--border);
+                border-radius:var(--radius-sm);font-family:'Hind Siliguri',sans-serif;font-size:0.85rem" />
       </div>
-      <div id="transaction-timeline" class="timeline"></div>
-    </section>
+      <button class="btn-outline" onclick="clearTxnFilter()">রিসেট</button>
+    </div>
+
+    <!-- ── Summary Strip ── -->
+    <div id="txn-summary-strip" class="txn-summary-strip"></div>
+
+    <!-- ── Timeline ── -->
+    <div id="transaction-timeline" class="timeline"></div>
+   </section>
 
     <!-- ── OVERDUE PAGE ── -->
     <section id="page-overdue" class="page">
@@ -240,7 +280,7 @@
     </section>
 
     <!-- ── EXPENSES PAGE ── -->
-  <section id="page-expenses" class="page">
+   <section id="page-expenses" class="page">
     <div class="page-header">
       <h2>খরচের হিসাব</h2>
       <button class="btn-primary" onclick="openAddExpense()">+ নতুন খরচ</button>
@@ -273,7 +313,7 @@
 
     <!-- List -->
     <div id="expense-list"></div>
-  </section>
+   </section>
 
     <!-- ── REPORT PAGE ── -->
     <section id="page-report" class="page">
@@ -387,7 +427,15 @@
       <button class="modal-close" onclick="closeModal('modal-transaction')">✕</button>
     </div>
       <div class="modal-body">
-    <!-- Mode toggle -->
+        <!-- Offline cache indicator — hidden by default -->
+        <div id="offline-cache-note"
+          style="display:none;align-items:center;gap:0.5rem;
+                background:#fff3cd;border:1px solid #ffc107;border-radius:var(--radius-sm);
+                padding:0.45rem 0.75rem;margin-bottom:0.8rem;font-size:0.8rem;color:#856404">
+          <span>📴</span>
+          <span>অফলাইন — সংরক্ষিত ডেটা ব্যবহার হচ্ছে। ইন্টারনেট ফিরলে আপডেট হবে।</span>
+        </div>
+     <!-- Mode toggle -->
     <div class="txn-type-toggle">
       <button class="type-btn active" id="mode-sale"     onclick="setTxnMode('sale')">🛒 পণ্য বিক্রি</button>
       <button class="type-btn"        id="mode-repayment" onclick="setTxnMode('repayment')">💵 বাকি পরিশোধ</button>
@@ -396,18 +444,26 @@
     <!-- Customer (both modes) -->
     <div class="form-group">
       <label>খদ্দের *</label>
-      <select id="t-customer">
-        <option value="">খদ্দের বাছুন...</option>
-      </select>
+        <div class="searchable-select" id="ss-wrap-customer">
+          <input type="text"   id="t-customer-search" class="ss-input"
+                placeholder="খদ্দেরের নাম বা ফোন লিখুন..." autocomplete="off" />
+          <button type="button" class="ss-clear" id="t-customer-clear" tabindex="-1">✕</button>
+          <input type="hidden" id="t-customer" />
+          <div id="t-customer-results" class="ss-results"></div>
+        </div>
     </div>
 
     <!-- ── SALE FIELDS ── -->
     <div id="sale-fields">
       <div class="form-group">
         <label>পণ্য *</label>
-        <select id="t-product" onchange="onProductChange()">
-          <option value="">পণ্য বাছুন...</option>
-        </select>
+        <div class="searchable-select" id="ss-wrap-product">
+          <input type="text"   id="t-product-search" class="ss-input"
+                placeholder="পণ্যের নাম লিখুন..." autocomplete="off" />
+          <button type="button" class="ss-clear" id="t-product-clear" tabindex="-1">✕</button>
+          <input type="hidden" id="t-product" />
+          <div id="t-product-results" class="ss-results"></div>
+        </div>
       </div>
       <div id="quantity-section" class="form-group hidden">
         <label>পরিমাণ *</label>
@@ -498,41 +554,54 @@
 <div id="modal-customer-detail" class="modal-overlay hidden">
   <div class="modal modal-large">
     <div class="modal-header">
-      <h3 id="detail-name">খদ্দেরের বিস্তারিত</h3>
+      <div style="display:flex;align-items:center;gap:0.75rem">
+        <div id="detail-avatar"
+          style="width:44px;height:44px;border-radius:50%;background:var(--green-dark);
+                 color:var(--amber);display:flex;align-items:center;justify-content:center;
+                 font-family:'Tiro Bangla',serif;font-size:1.3rem;font-weight:700;flex-shrink:0">
+        </div>
+        <div>
+          <h3 id="detail-name" style="margin:0;font-family:'Tiro Bangla',serif;color:var(--green-dark)"></h3>
+          <div id="detail-meta" style="font-size:0.8rem;color:var(--ink-light);margin-top:2px"></div>
+        </div>
+      </div>
       <button class="modal-close" onclick="closeModal('modal-customer-detail')">✕</button>
     </div>
-    <div class="modal-body">
-      <div class="detail-top">
-        <div class="detail-info">
-          <p id="detail-phone">📞 —</p>
-          <p id="detail-address">📍 —</p>
-          <p id="detail-shop">🏪 —</p>
-        </div>
-        <div class="detail-stats">
-          <div class="detail-stat">
-            <div class="detail-stat-label">বকেয়া</div>
-            <div class="detail-stat-value" id="detail-balance">৳০</div>
-          </div>
-          <div class="detail-stat">
-            <div class="detail-stat-label">বিশ্বস্ততা</div>
-            <div class="trust-score-ring">
-              <svg viewBox="0 0 36 36" class="ring-svg">
-                <path class="ring-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
-                <path class="ring-fill" id="detail-trust-ring" stroke-dasharray="0, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
-              </svg>
-              <span id="detail-trust-val">০</span>
-            </div>
-          </div>
+
+    <div class="modal-body" style="padding:0">
+
+      <!-- ── Top stat bar ── -->
+      <div id="detail-stat-bar"
+        style="display:grid;grid-template-columns:repeat(4,1fr);border-bottom:1px solid var(--border)">
+      </div>
+
+      <!-- ── Analytics row ── -->
+      <div id="detail-analytics-row"
+        style="display:flex;gap:1rem;padding:1rem 1.4rem;flex-wrap:wrap;
+               border-bottom:1px solid var(--border);background:var(--cream-dark)">
+      </div>
+
+      <!-- ── Trust score + actions ── -->
+      <div style="display:flex;justify-content:space-between;align-items:center;
+                  padding:1rem 1.4rem;flex-wrap:wrap;gap:0.75rem;
+                  border-bottom:1px solid var(--border)">
+        <div id="detail-trust-section" style="display:flex;align-items:center;gap:1rem"></div>
+        <div style="display:flex;gap:0.5rem;flex-wrap:wrap">
+          <button class="btn-primary"  onclick="openAddTransactionForCustomer()">+ লেনদেন</button>
+          <button class="btn-outline"  onclick="sendReminder()">📲 রিমাইন্ড</button>
+          <button class="btn-outline"  onclick="printStatement()">🖨️ প্রিন্ট</button>
+          <button class="btn-outline danger" onclick="deleteCurrentCustomer()">🗑️ মুছুন</button>
         </div>
       </div>
-      <div class="detail-actions">
-        <button class="btn-primary" onclick="openAddTransactionForCustomer()">+ লেনদেন যোগ করুন</button>
-        <button class="btn-outline" onclick="sendReminder()" data-i18n="reminder">📲 রিমাইন্ডার পাঠান</button>
-        <button class="btn-outline" onclick="printStatement()" data-i18n="print">🖨️ স্টেটমেন্ট প্রিন্ট</button>
-        <button class="btn-outline danger" onclick="deleteCurrentCustomer()" data-i18n="delete">🗑️ মুছুন</button>
+
+      <!-- ── Timeline ── -->
+      <div style="padding:1rem 1.4rem">
+        <h4 style="font-family:'Tiro Bangla',serif;color:var(--green-dark);margin-bottom:0.75rem">
+          লেনদেনের ইতিহাস
+        </h4>
+        <div id="detail-transactions"></div>
       </div>
-      <h4 style="margin:1.5rem 0 0.75rem">লেনদেনের ইতিহাস</h4>
-      <div id="detail-transactions"></div>
+
     </div>
   </div>
 </div>
@@ -764,6 +833,66 @@
     </div>
   </div>
 </div>
+
+<!-- Monthly Detail Modal -->
+<div id="modal-month-detail" class="modal-overlay hidden">
+  <div class="modal modal-large" style="max-width:800px">
+    <div class="modal-header">
+      <div>
+        <h3 id="month-detail-title"
+          style="font-family:'Tiro Bangla',serif;color:var(--green-dark)"></h3>
+        <div id="month-detail-subtitle"
+          style="font-size:0.8rem;color:var(--ink-light);margin-top:2px"></div>
+      </div>
+    <div style="display:flex;align-items:center;gap:0.4rem">
+      <button onclick="openMonthlyPrintView()"
+      style="background:#fff;color:var(--green-dark);border:1.5px solid var(--green-dark);
+           border-radius:var(--radius-sm);padding:0.38rem 0.75rem;
+           font-family:'Hind Siliguri',sans-serif;font-size:0.76rem;
+           cursor:pointer;white-space:nowrap">
+        🖨️ PDF
+        </button>
+      <button onclick="exportMonthlyCSV(window._lastMonthData)"
+      style="background:var(--green-dark);color:#fff;border:none;
+           border-radius:var(--radius-sm);padding:0.38rem 0.75rem;
+           font-family:'Hind Siliguri',sans-serif;font-size:0.76rem;
+           cursor:pointer;white-space:nowrap">
+      📥 CSV
+      </button>
+    <button class="modal-close" onclick="closeModal('modal-month-detail')">✕</button>
+    </div>
+    </div>
+
+    <div class="modal-body" style="padding:0">
+
+      <!-- Summary cards -->
+      <div id="month-summary-cards"
+        style="display:grid;grid-template-columns:repeat(3,1fr);
+               border-bottom:1px solid var(--border)">
+      </div>
+
+      <!-- Tabs -->
+      <div class="month-tabs" id="month-tabs">
+        <button class="month-tab active" onclick="switchMonthTab('overview')">সারসংক্ষেপ</button>
+        <button class="month-tab" onclick="switchMonthTab('transactions')">লেনদেন</button>
+        <button class="month-tab" onclick="switchMonthTab('expenses')">খরচ</button>
+        <button class="month-tab" onclick="switchMonthTab('products')">পণ্য</button>
+        <button class="month-tab" onclick="switchMonthTab('customers')">খদ্দের</button>
+        <button class="month-tab" onclick="switchMonthTab('insights')">💡 ইনসাইট</button>
+      </div>
+
+      <!-- Tab content -->
+      <div id="month-tab-content" style="padding:1.2rem 1.4rem;max-height:420px;overflow-y:auto">
+        <!-- Chart canvas pool — reused across renders -->
+          <div id="chart-pool" style="display:none">
+            <canvas id="chart-summary-bar"></canvas>
+            <canvas id="chart-daily-line"></canvas>
+          </div>
+      </div>
+
+    </div>
+  </div>
+ </div>
 
 </body>
 </html>
