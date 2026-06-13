@@ -88,6 +88,69 @@ db.exec(`
 
   CREATE INDEX IF NOT EXISTS idx_suptxn_supplier ON supplier_transactions(supplierId);
   CREATE INDEX IF NOT EXISTS idx_suptxn_date     ON supplier_transactions(date);
+
+  CREATE TABLE IF NOT EXISTS expenses (
+    id            TEXT PRIMARY KEY,
+    title         TEXT NOT NULL,
+    category      TEXT DEFAULT 'Misc',
+    amount        REAL NOT NULL,
+    shop          TEXT DEFAULT 'প্রধান শাখা',
+    note          TEXT DEFAULT '',
+    receiptPhoto  TEXT,
+    paymentMethod TEXT,
+    date          TEXT NOT NULL,
+    createdAt     TEXT NOT NULL
+  );
+
+  CREATE INDEX IF NOT EXISTS idx_exp_shop     ON expenses(shop);
+  CREATE INDEX IF NOT EXISTS idx_exp_category ON expenses(category);
+  CREATE INDEX IF NOT EXISTS idx_exp_date     ON expenses(date);
+
+  CREATE TABLE IF NOT EXISTS accounts (
+    id        TEXT PRIMARY KEY,
+    name      TEXT NOT NULL,
+    type      TEXT DEFAULT 'general',
+    balance   REAL DEFAULT 0,
+    createdAt TEXT NOT NULL
+  );
+
+  CREATE TABLE IF NOT EXISTS account_transactions (
+    id          TEXT PRIMARY KEY,
+    accountId   TEXT NOT NULL,
+    type        TEXT NOT NULL,
+    amount      REAL NOT NULL,
+    note        TEXT DEFAULT '',
+    relatedType TEXT,
+    relatedId   TEXT,
+    date        TEXT NOT NULL,
+    createdAt   TEXT NOT NULL,
+    FOREIGN KEY (accountId) REFERENCES accounts(id) ON DELETE CASCADE
+  );
+
+  CREATE INDEX IF NOT EXISTS idx_acctxn_account ON account_transactions(accountId);
+  CREATE INDEX IF NOT EXISTS idx_acctxn_date    ON account_transactions(date);
+
+  CREATE TABLE IF NOT EXISTS app_settings (
+    id        INTEGER PRIMARY KEY CHECK (id = 1),
+    shopName  TEXT DEFAULT 'আমার দোকান',
+    ownerName TEXT DEFAULT 'দোকান মালিক',
+    shops     TEXT DEFAULT '["প্রধান শাখা"]',
+    createdAt TEXT NOT NULL,
+    updatedAt TEXT NOT NULL
+  );
+
+  CREATE TABLE IF NOT EXISTS users (
+    id        TEXT PRIMARY KEY,
+    phone     TEXT NOT NULL UNIQUE,
+    name      TEXT NOT NULL,
+    pinHash   TEXT NOT NULL,
+    role      TEXT DEFAULT 'owner',
+    createdAt TEXT NOT NULL,
+    updatedAt TEXT NOT NULL
+  );
+
+  CREATE UNIQUE INDEX IF NOT EXISTS idx_users_phone ON users(phone);
+
 `);
 
 // ─── One-time JSON → SQLite migration ────────────────
@@ -255,6 +318,230 @@ function migrateIfNeeded() {
     })(txns);
 
     console.log(`✅ Migrated ${txns.length} supplier transactions to SQLite`);
+  }
+
+  // Migrate expenses
+  const expFile  = path.join(DATA_DIR, 'expenses.json');
+  const expCount = db.prepare(`SELECT COUNT(*) as n FROM expenses`).get().n;
+
+  if (expCount === 0 && fs.existsSync(expFile)) {
+    let expenses = [];
+    try { expenses = JSON.parse(fs.readFileSync(expFile, 'utf8')); } catch {}
+
+    const insertExp = db.prepare(`
+      INSERT OR IGNORE INTO expenses
+        (id, title, category, amount, shop, note, receiptPhoto, paymentMethod, date, createdAt)
+      VALUES
+        (@id, @title, @category, @amount, @shop, @note, @receiptPhoto, @paymentMethod, @date, @createdAt)
+    `);
+
+    db.transaction(rows => {
+      for (const e of rows) insertExp.run({
+        id:            e.id,
+        title:         e.title         || '',
+        category:      e.category      || 'Misc',
+        amount:        e.amount        || 0,
+        shop:          e.shop          || 'প্রধান শাখা',
+        note:          e.note          || '',
+        receiptPhoto:  e.receiptPhoto  || null,
+        paymentMethod: e.paymentMethod || null,
+        date:          e.date          || new Date().toISOString(),
+        createdAt:     e.createdAt     || e.date || new Date().toISOString()
+      });
+    })(expenses);
+
+    console.log(`✅ Migrated ${expenses.length} expenses to SQLite`);
+  }
+
+  // Migrate accounts
+  const accFile  = path.join(DATA_DIR, 'accounts.json');
+  const accCount = db.prepare(`SELECT COUNT(*) as n FROM accounts`).get().n;
+
+  if (accCount === 0) {
+    // Always seed default accounts if table is empty
+    const defaults = [
+      { id: 'cash',   name: 'নগদ (Cash)',  type: 'cash',   balance: 0 },
+      { id: 'bkash',  name: 'বিকাশ',       type: 'mobile', balance: 0 },
+      { id: 'nagad',  name: 'নগদ (Nagad)', type: 'mobile', balance: 0 },
+      { id: 'rocket', name: 'রকেট',        type: 'mobile', balance: 0 },
+      { id: 'bank',   name: 'ব্যাংক',      type: 'bank',   balance: 0 }
+    ];
+
+    // If JSON exists, use its balances over defaults
+    let jsonAccounts = [];
+    if (fs.existsSync(accFile)) {
+      try { jsonAccounts = JSON.parse(fs.readFileSync(accFile, 'utf8')); } catch {}
+    }
+
+    const insertAcc = db.prepare(`
+      INSERT OR IGNORE INTO accounts (id, name, type, balance, createdAt)
+      VALUES (@id, @name, @type, @balance, @createdAt)
+    `);
+
+    db.transaction(() => {
+      for (const def of defaults) {
+        const fromJson = jsonAccounts.find(a => a.id === def.id);
+        insertAcc.run({
+          id:        def.id,
+          name:      fromJson?.name    || def.name,
+          type:      fromJson?.type    || def.type,
+          balance:   fromJson?.balance || def.balance,
+          createdAt: new Date().toISOString()
+        });
+      }
+      // Also import any extra accounts from JSON not in defaults
+      for (const a of jsonAccounts) {
+        if (!defaults.find(d => d.id === a.id)) {
+          insertAcc.run({
+            id:        a.id,
+            name:      a.name    || '',
+            type:      a.type    || 'general',
+            balance:   a.balance || 0,
+            createdAt: a.createdAt || new Date().toISOString()
+          });
+        }
+      }
+    })();
+
+    console.log(`✅ Migrated accounts to SQLite`);
+  }
+
+  // Migrate account_transactions
+  const accTxnFile  = path.join(DATA_DIR, 'account_transactions.json');
+  const accTxnCount = db.prepare(`SELECT COUNT(*) as n FROM account_transactions`).get().n;
+
+  if (accTxnCount === 0 && fs.existsSync(accTxnFile)) {
+    let accTxns = [];
+    try { accTxns = JSON.parse(fs.readFileSync(accTxnFile, 'utf8')); } catch {}
+
+    const insertAccTxn = db.prepare(`
+      INSERT OR IGNORE INTO account_transactions
+        (id, accountId, type, amount, note, relatedType, relatedId, date, createdAt)
+      VALUES
+        (@id, @accountId, @type, @amount, @note, @relatedType, @relatedId, @date, @createdAt)
+    `);
+
+    db.transaction(rows => {
+      for (const t of rows) insertAccTxn.run({
+        id:          t.id,
+        accountId:   t.accountId,
+        type:        t.type,
+        amount:      t.amount      || 0,
+        note:        t.note        || '',
+        relatedType: t.relatedType || null,
+        relatedId:   t.relatedId   || null,
+        date:        t.date        || new Date().toISOString(),
+        createdAt:   t.createdAt   || t.date || new Date().toISOString()
+      });
+    })(accTxns);
+
+    console.log(`✅ Migrated ${accTxns.length} account transactions to SQLite`);
+  }
+
+  // ── app_settings: clean schema migration ──────────────
+  // Step 1: drop legacy pinHash column if it exists
+  (function cleanAppSettings() {
+    const cols = db.prepare(`PRAGMA table_info(app_settings)`).all().map(c => c.name);
+
+    if (cols.includes('pinHash')) {
+      console.log('⚙️  Removing legacy pinHash from app_settings...');
+      db.exec(`
+        CREATE TABLE IF NOT EXISTS app_settings_clean (
+          id        INTEGER PRIMARY KEY CHECK (id = 1),
+          shopName  TEXT DEFAULT 'আমার দোকান',
+          ownerName TEXT DEFAULT 'দোকান মালিক',
+          shops     TEXT DEFAULT '["প্রধান শাখা"]',
+          createdAt TEXT NOT NULL,
+          updatedAt TEXT NOT NULL
+        );
+
+        INSERT OR IGNORE INTO app_settings_clean
+          (id, shopName, ownerName, shops, createdAt, updatedAt)
+        SELECT
+          id, shopName, ownerName, shops, createdAt, updatedAt
+        FROM app_settings;
+
+        DROP TABLE app_settings;
+
+        ALTER TABLE app_settings_clean RENAME TO app_settings;
+      `);
+      console.log('✅ pinHash column removed from app_settings');
+    }
+  })();
+
+  // Step 2: seed default row if table is empty
+  const settingsRow = db.prepare(`SELECT id FROM app_settings WHERE id = 1`).get();
+
+  if (!settingsRow) {
+    let shopName  = 'আমার দোকান';
+    let ownerName = 'দোকান মালিক';
+    let shops     = ['প্রধান শাখা'];
+
+    const authFile = path.join(DATA_DIR, 'auth.json');
+    if (fs.existsSync(authFile)) {
+      try {
+        const raw = JSON.parse(fs.readFileSync(authFile, 'utf8'));
+        if (raw.shopName)                                  shopName  = raw.shopName;
+        if (raw.ownerName)                                 ownerName = raw.ownerName;
+        if (Array.isArray(raw.shops) && raw.shops.length)  shops     = raw.shops;
+      } catch {}
+    }
+
+    const now = new Date().toISOString();
+    db.prepare(`
+      INSERT INTO app_settings (id, shopName, ownerName, shops, createdAt, updatedAt)
+      VALUES (1, @shopName, @ownerName, @shops, @createdAt, @updatedAt)
+    `).run({
+      shopName,
+      ownerName,
+      shops:     JSON.stringify(shops),
+      createdAt: now,
+      updatedAt: now
+    });
+
+    console.log('✅ app_settings default row created');
+  }
+
+  // Migrate users.json → users table
+  const usersFile  = path.join(DATA_DIR, 'users.json');
+  const usersCount = db.prepare(`SELECT COUNT(*) as n FROM users`).get().n;
+
+  if (usersCount === 0) {
+    let jsonUsers = [];
+    if (fs.existsSync(usersFile)) {
+      try { jsonUsers = JSON.parse(fs.readFileSync(usersFile, 'utf8')); } catch {}
+    }
+
+    // If no JSON users exist, seed the default account
+    if (!jsonUsers.length) {
+      jsonUsers = [{
+        id:    '1',
+        phone: '01700000000',
+        name:  'দোকান মালিক',
+        // default PIN: 1234
+        pin:   '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy'
+      }];
+    }
+
+    const insertUser = db.prepare(`
+      INSERT OR IGNORE INTO users (id, phone, name, pinHash, role, createdAt, updatedAt)
+      VALUES (@id, @phone, @name, @pinHash, @role, @createdAt, @updatedAt)
+    `);
+
+    const now = new Date().toISOString();
+    db.transaction(rows => {
+      for (const u of rows) insertUser.run({
+        id:        u.id        || u.phone,
+        phone:     u.phone,
+        name:      u.name      || 'দোকান মালিক',
+        pinHash:   u.pin       || u.pinHash || '',
+        role:      u.role      || 'owner',
+        createdAt: u.createdAt || now,
+        updatedAt: u.updatedAt || now
+      });
+    })(jsonUsers);
+
+    console.log(`✅ Migrated ${jsonUsers.length} users to SQLite`);
   }
 }
 
