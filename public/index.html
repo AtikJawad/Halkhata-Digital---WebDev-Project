@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="theme-color" content="#1a472a" />
-  <title>হালখাতা ডিজিটাল</title>
+  <title>হালখাতা Digital</title>
   <link rel="manifest" href="/manifest.json" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@300;400;500;600;700&family=Tiro+Bangla:ital@0;1&display=swap" rel="stylesheet" />
@@ -38,7 +38,7 @@
       <span class="nav-icon">📊</span><span data-i18n="dashboard">ড্যাশবোর্ড</span>
       </li>
       <li class="nav-item" data-page="customers" onclick="navigate('customers')">
-        <span class="nav-icon">👥</span><span data-i18n="customers">খদ্দের</span>
+        <span class="nav-icon">👥</span><span data-i18n="customers">গ্রাহক</span>
       </li>
       <li class="nav-item" data-page="transactions" onclick="navigate('transactions')">
         <span class="nav-icon">💰</span><span data-i18n="transactions">লেনদেন</span>
@@ -124,7 +124,7 @@
         <div class="stat-card stat-customers">
           <div class="stat-icon">👥</div>
           <div class="stat-body">
-            <div class="stat-label" data-i18n="totalCustomers">মোট খদ্দের</div>
+            <div class="stat-label" data-i18n="totalCustomers">মোট গ্রাহক</div>
             <div class="stat-value" id="stat-customers">০</div>
           </div>
         </div>
@@ -141,7 +141,7 @@
         <div class="quick-actions-card">
           <h3 data-i18n="quickActions">দ্রুত কাজ</h3>
           <button class="quick-btn" onclick="navigate('customers'); setTimeout(openAddCustomer, 200)">
-            <span>👤</span> <span data-i18n="quickAddCustomer">নতুন খদ্দের যোগ করুন</span>
+            <span>👤</span> <span data-i18n="quickAddCustomer">নতুন গ্রাহক যোগ করুন</span>
           </button>
           <button class="quick-btn" onclick="openAddTransaction()">
             <span>➕</span> <span data-i18n="quickAddTransaction">বাকি লেনদেন রেকর্ড করুন</span>
@@ -162,8 +162,8 @@
     <!-- ── CUSTOMERS PAGE ── -->
     <section id="page-customers" class="page">
       <div class="page-header">
-        <h2 data-i18n="customers">খদ্দের তালিকা</h2>
-        <button class="btn-primary" onclick="openAddCustomer()" data-i18n="addCustomer">+ নতুন খদ্দের</button>
+        <h2 data-i18n="customers">গ্রাহকের তালিকা</h2>
+        <button class="btn-primary" onclick="openAddCustomer()" data-i18n="addCustomer">+ নতুন গ্রাহক</button>
       </div>
       <div class="search-bar">
         <input type="text" id="customer-search" placeholder="নাম বা ফোন নম্বর দিয়ে খুঁজুন..." oninput="searchCustomers()" />
@@ -185,7 +185,7 @@
       <div class="txn-filter-search">
         <span class="search-icon">🔍</span>
         <input type="text" id="txn-search"
-          placeholder="খদ্দের বা পণ্যের নাম খুঁজুন..."
+          placeholder="গ্রাহক বা পণ্যের নাম খুঁজুন..."
           oninput="loadTransactions()" />
       </div>
       <select id="txn-filter-type" onchange="loadTransactions()" class="txn-filter-sel">
@@ -203,7 +203,7 @@
         <option value="bank">ব্যাংক</option>
       </select>
       <select id="txn-filter-customer" onchange="loadTransactions()" class="txn-filter-sel">
-        <option value="">সব খদ্দের</option>
+        <option value="">সব গ্রাহক</option>
       </select>
       <div style="display:flex;gap:0.4rem;align-items:center">
         <input type="date" id="txn-date-from" onchange="loadTransactions()"
@@ -327,58 +327,194 @@
     <div id="report-table" class="report-table-wrap"></div>
   </section>
 
-    <!-- ── SETTINGS PAGE ── -->
-    <section id="page-settings" class="page">
-    <div class="page-header"><h2 data-i18n="settingsTitle">সেটিংস</h2></div>
-    <div class="settings-grid">
+<!-- ── SETTINGS PAGE ── -->
+<section id="page-settings" class="page">
 
-      <div class="settings-card">
-        <h3 data-i18n="shopInfo">দোকানের তথ্য</h3>
-        <div class="form-group">
-          <label data-i18n="shopName">দোকানের নাম</label>
-          <input type="text" id="setting-shop-name" />
+  <div class="page-header">
+    <h2>⚙️ সেটিংস</h2>
+  </div>
+
+  <div class="settings-grid">
+
+    <!-- ── CARD 1: Shop Info ── -->
+    <div class="settings-card">
+      <div class="stg-card-header">
+        <span class="stg-card-icon">🏪</span>
+        <div>
+          <div class="stg-card-title">দোকানের তথ্য</div>
+          <div class="stg-card-sub">নাম ও মালিকের তথ্য পরিবর্তন করুন</div>
         </div>
-        <div class="form-group">
-          <label data-i18n="ownerName">মালিকের নাম</label>
-          <input type="text" id="setting-owner-name" />
-        </div>
+      </div>
+
       <div class="form-group">
-          <label data-i18n="branches">শাখাসমূহ</label>
-          <div style="display:flex;gap:0.5rem;margin-bottom:0.6rem">
-            <input type="text" id="new-shop-input" placeholder="নতুন শাখার নাম" style="flex:1" />
-            <button type="button" class="btn-primary" onclick="addShop()" data-i18n="add">যোগ করুন</button>
-          </div>
-          <p id="shop-error" style="color:var(--red);font-size:0.8rem;min-height:1rem;margin-bottom:0.4rem"></p>
-          <div id="shop-list"></div>
-        </div>
-        <button class="btn-primary" onclick="saveSettings()" data-i18n="save">সংরক্ষণ করুন</button>
+        <label>দোকানের নাম</label>
+        <input type="text" id="setting-shop-name"
+               placeholder="আপনার দোকানের নাম লিখুন"
+               autocomplete="off" />
+        <div class="stg-field-hint">এই নামটি রিপোর্ট ও প্রিন্টে দেখাবে</div>
       </div>
 
-      <div class="settings-card">
-        <h3 data-i18n="changePin">PIN পরিবর্তন</h3>
-        <div class="form-group">
-          <label data-i18n="oldPin">পুরানো PIN</label>
-          <input type="password" id="old-pin" maxlength="4" />
-        </div>
-        <div class="form-group">
-          <label data-i18n="newPin">নতুন PIN</label>
-          <input type="password" id="new-pin" maxlength="4" />
-        </div>
-        <button class="btn-primary" onclick="changePin()" data-i18n="changePin">PIN পরিবর্তন করুন</button>
+      <div class="form-group">
+        <label>মালিকের নাম</label>
+        <input type="text" id="setting-owner-name"
+               placeholder="মালিকের পূর্ণ নাম লিখুন"
+               autocomplete="off" />
+        <div class="stg-field-hint">লগইন স্বাগত বার্তায় ব্যবহৃত হবে</div>
       </div>
 
-      <div class="settings-card">
-        <h3 data-i18n="dataManagement">ডেটা ব্যবস্থাপনা</h3>
-        <button class="btn-outline" onclick="exportBackup()" data-i18n="downloadBackup">💾 ব্যাকআপ ডাউনলোড</button>
-        <br/><br/>
-        <button class="btn-outline danger" onclick="confirmClearData()" data-i18n="clearData">🗑️ সব ডেটা মুছুন</button>
+      <!-- Branch section -->
+      <div class="stg-section-divider">
+        <span>শাখাসমূহ</span>
+        <span class="stg-branch-badge" id="stg-branch-count">০ টি শাখা</span>
       </div>
-      
+
+      <div class="stg-branch-add">
+        <input type="text" id="new-shop-input"
+               placeholder="নতুন শাখার নাম লিখুন..."
+               autocomplete="off" />
+        <button type="button" class="btn-primary stg-add-btn" onclick="addShop()">
+          + যোগ করুন
+        </button>
+      </div>
+      <p id="shop-error" class="stg-error-text"></p>
+
+      <div id="shop-list" class="stg-branch-list"></div>
+
+      <div class="stg-save-row">
+        <button class="btn-primary stg-save-btn" onclick="saveSettings()">
+          💾 সংরক্ষণ করুন
+        </button>
+        <span class="stg-save-feedback hidden" id="stg-shop-saved">✅ সংরক্ষিত হয়েছে</span>
+      </div>
     </div>
-  </section>
 
-  </main>
-</div>
+    <!-- ── CARD 2: Security ── -->
+    <div class="settings-card">
+      <div class="stg-card-header">
+        <span class="stg-card-icon">🔒</span>
+        <div>
+          <div class="stg-card-title">নিরাপত্তা</div>
+          <div class="stg-card-sub">লগইন PIN পরিবর্তন করুন</div>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>পুরানো PIN</label>
+        <div class="stg-pin-wrap">
+          <input type="password" id="old-pin"
+                 maxlength="4" inputmode="numeric"
+                 placeholder="••••" class="stg-pin-input" />
+          <button type="button" class="stg-eye-btn"
+                  onclick="togglePinVisibility('old-pin', this)"
+                  title="দেখুন/লুকান">👁</button>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>নতুন PIN</label>
+        <div class="stg-pin-wrap">
+          <input type="password" id="new-pin"
+                 maxlength="4" inputmode="numeric"
+                 placeholder="••••" class="stg-pin-input"
+                 oninput="validatePinMatch()" />
+          <button type="button" class="stg-eye-btn"
+                  onclick="togglePinVisibility('new-pin', this)"
+                  title="দেখুন/লুকান">👁</button>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>নতুন PIN নিশ্চিত করুন</label>
+        <div class="stg-pin-wrap">
+          <input type="password" id="confirm-pin"
+                 maxlength="4" inputmode="numeric"
+                 placeholder="••••" class="stg-pin-input"
+                 oninput="validatePinMatch()" />
+          <button type="button" class="stg-eye-btn"
+                  onclick="togglePinVisibility('confirm-pin', this)"
+                  title="দেখুন/লুকান">👁</button>
+        </div>
+        <div class="stg-pin-match-msg" id="pin-match-msg"></div>
+      </div>
+
+      <div class="stg-pin-rules">
+        <span id="pin-rule-len"  class="stg-pin-rule">○ ঠিক ৪ সংখ্যা</span>
+        <span id="pin-rule-match" class="stg-pin-rule">○ PIN দুটি মিলছে</span>
+      </div>
+
+      <div class="stg-save-row">
+        <button class="btn-primary stg-save-btn" onclick="changePin()">
+          🔑 PIN পরিবর্তন করুন
+        </button>
+        <span class="stg-save-feedback hidden" id="stg-pin-saved">✅ PIN পরিবর্তন হয়েছে</span>
+      </div>
+    </div>
+
+    <!-- ── CARD 3: Data Management ── -->
+    <div class="settings-card">
+      <div class="stg-card-header">
+        <span class="stg-card-icon">🗄️</span>
+        <div>
+          <div class="stg-card-title">ডেটা ব্যবস্থাপনা</div>
+          <div class="stg-card-sub">ব্যাকআপ ও রপ্তানি</div>
+        </div>
+      </div>
+
+      <div class="stg-data-grid">
+        <button class="stg-data-btn" onclick="exportBackup()">
+          <span class="stg-data-icon">💾</span>
+          <div>
+            <div class="stg-data-lbl">JSON ব্যাকআপ</div>
+            <div class="stg-data-sub">সম্পূর্ণ ডেটা ডাউনলোড</div>
+          </div>
+        </button>
+
+        <button class="stg-data-btn" onclick="navigate('report');setTimeout(()=>exportYearlyCSV(window._lastReportData?.data, window._lastReportData?.year),300)">
+          <span class="stg-data-icon">📊</span>
+          <div>
+            <div class="stg-data-lbl">CSV রিপোর্ট</div>
+            <div class="stg-data-sub">বার্ষিক রিপোর্ট ডাউনলোড</div>
+          </div>
+        </button>
+
+        <button class="stg-data-btn" onclick="navigate('report');setTimeout(openYearlyPrintView,400)">
+          <span class="stg-data-icon">🖨️</span>
+          <div>
+            <div class="stg-data-lbl">PDF রিপোর্ট</div>
+            <div class="stg-data-sub">প্রিন্ট / PDF সেভ</div>
+          </div>
+        </button>
+
+        <button class="stg-data-btn" onclick="openRestoreDialog()">
+          <span class="stg-data-icon">📥</span>
+          <div>
+            <div class="stg-data-lbl">ডেটা পুনরুদ্ধার</div>
+            <div class="stg-data-sub">JSON ব্যাকআপ থেকে</div>
+          </div>
+        </button>
+      </div>
+
+      <div id="stg-last-backup" class="stg-last-backup hidden">
+        📅 শেষ ব্যাকআপ: <span id="stg-backup-date">—</span>
+      </div>
+
+      <!-- Restore input (hidden) -->
+      <input type="file" id="stg-restore-file"
+             accept=".json" class="hidden"
+             onchange="handleRestoreFile(event)" />
+
+      <!-- Danger zone -->
+      <div class="stg-danger-zone">
+        <div class="stg-danger-label">⚠️ বিপজ্জনক এলাকা</div>
+        <button class="stg-danger-btn" onclick="confirmClearData()">
+          🗑️ সব ডেটা মুছুন
+        </button>
+        <div class="stg-danger-hint">এই কাজটি পূর্বাবস্থায় ফেরানো যাবে না।</div>
+      </div>
+    </div>
+
+  </div>
+</section>
 
 <!-- ═══════════ MODALS ═══════════ -->
 
@@ -386,14 +522,14 @@
 <div id="modal-customer" class="modal-overlay hidden">
   <div class="modal">
     <div class="modal-header">
-      <h3 id="customer-modal-title">নতুন খদ্দের যোগ করুন</h3>
+      <h3 id="customer-modal-title">নতুন গ্রাহক যোগ করুন</h3>
       <button class="modal-close" onclick="closeModal('modal-customer')">✕</button>
     </div>
     <div class="modal-body">
       <input type="hidden" id="customer-id" />
       <div class="form-group">
         <label data-i18n="name">নাম *</label>
-        <input type="text" id="c-name" placeholder="খদ্দেরের নাম" />
+        <input type="text" id="c-name" placeholder="গ্রাহকের নাম" />
       </div>
       <div class="form-group">
         <label data-i18n="phone">ফোন নম্বর</label>
@@ -443,10 +579,10 @@
 
     <!-- Customer (both modes) -->
     <div class="form-group">
-      <label>খদ্দের *</label>
+      <label>গ্রাহক *</label>
         <div class="searchable-select" id="ss-wrap-customer">
           <input type="text"   id="t-customer-search" class="ss-input"
-                placeholder="খদ্দেরের নাম বা ফোন লিখুন..." autocomplete="off" />
+                placeholder="গ্রাহকের নাম বা ফোন লিখুন..." autocomplete="off" />
           <button type="button" class="ss-clear" id="t-customer-clear" tabindex="-1">✕</button>
           <input type="hidden" id="t-customer" />
           <div id="t-customer-results" class="ss-results"></div>
@@ -476,7 +612,16 @@
         <p id="stock-error"
           style="color:var(--red);font-size:0.8rem;min-height:1rem;margin-top:0.3rem"></p>
       </div>
-      <div class="form-group">
+
+      <div class="form-group" id="batch-choice-group" style="display:none">
+        <label style="display:flex;align-items:center;gap:0.5rem;cursor:pointer;font-weight:600">
+        <input type="checkbox" id="t-choose-batch" style="width:auto" onchange="toggleBatchChoice()" />
+        নির্দিষ্ট ব্যাচ থেকে বিক্রি করুন
+        </label>
+        <div id="t-batch-list" class="hidden" style="margin-top:0.6rem"></div>
+      </div>
+
+    <div class="form-group">
         <label>পরিমাণ (৳) *</label>
         <input type="number" id="t-amount" placeholder="০.০০" />
       </div>
@@ -644,32 +789,45 @@
 
 <script src="/script.js"></script>
 
-<!-- Add Inventory Modal -->
+<!-- Add/Restock Product Modal -->
 <div id="modal-inventory" class="modal-overlay hidden">
   <div class="modal">
     <div class="modal-header">
-      <h3 id="inv-modal-title">নতুন পণ্য যোগ করুন</h3>
+      <h3 id="inv-modal-title">নতুন পণ্য / স্টক যোগ করুন</h3>
       <button class="modal-close" onclick="closeModal('modal-inventory')">✕</button>
     </div>
     <div class="modal-body">
-      <input type="hidden" id="inv-id" />
+      <input type="hidden" id="inv-product-id" />
+
       <div class="form-group">
         <label>পণ্যের নাম *</label>
-        <input type="text" id="inv-name" placeholder="যেমন: চাল, তেল, সাবান" />
+        <div class="searchable-select" id="ss-wrap-prodname">
+          <input type="text" id="inv-name-search" class="ss-input"
+                 placeholder="পণ্যের নাম লিখুন বা বাছুন..." autocomplete="off" />
+          <input type="hidden" id="inv-name-hidden" />
+          <div id="inv-name-results" class="ss-results"></div>
+        </div>
+        <div id="inv-existing-note" class="stg-field-hint hidden" style="color:var(--green-mid);font-weight:600">
+          ✓ বিদ্যমান পণ্য — নতুন ব্যাচ যোগ হবে
+        </div>
       </div>
+
+      <div class="form-group" id="inv-sellprice-group">
+        <label>বিক্রয় মূল্য (৳) *</label>
+        <input type="number" id="inv-sell-price" placeholder="০" />
+      </div>
+
+      <div class="stg-section-divider"><span>এই কেনাকাটার তথ্য</span></div>
+
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem">
         <div class="form-group">
-          <label>ক্রয় মূল্য (৳)</label>
-          <input type="number" id="inv-buy-price" placeholder="০" />
+          <label>পরিমাণ *</label>
+          <input type="number" id="inv-quantity" placeholder="০" />
         </div>
         <div class="form-group">
-          <label>বিক্রয় মূল্য (৳)</label>
-          <input type="number" id="inv-sell-price" placeholder="০" />
+          <label>ক্রয় মূল্য (প্রতি একক) (৳) *</label>
+          <input type="number" id="inv-buy-price" placeholder="০" />
         </div>
-      </div>
-      <div class="form-group">
-        <label>পরিমাণ (স্টক)</label>
-        <input type="number" id="inv-quantity" placeholder="০" />
       </div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem">
         <div class="form-group">
@@ -682,28 +840,43 @@
         </div>
       </div>
       <div class="form-group">
-      <label>সরবরাহকারী (ঐচ্ছিক)</label>
-      <select id="inv-supplier">
-        <option value="">সরবরাহকারী বাছুন...</option>
-      </select>
+        <label>সরবরাহকারী (ঐচ্ছিক)</label>
+        <select id="inv-supplier"><option value="">সরবরাহকারী বাছুন...</option></select>
       </div>
-      <div class="form-group">
+      <div class="form-group" id="inv-shop-group">
         <label>শাখা</label>
         <select id="inv-shop"></select>
       </div>
-
-      <div class="form-group" id="inv-auto-expense-group">
+      <div class="form-group">
         <label style="display:flex;align-items:center;gap:0.5rem;cursor:pointer">
           <input type="checkbox" id="inv-auto-expense" style="width:auto" />
           স্বয়ংক্রিয়ভাবে খরচ এন্ট্রি তৈরি করুন
-          <span style="font-size:0.75rem;color:var(--ink-light)">(ক্রয় মূল্য × পরিমাণ)</span>
         </label>
       </div>
-
     </div>
     <div class="modal-footer">
       <button class="btn-outline" onclick="closeModal('modal-inventory')">বাতিল</button>
       <button class="btn-primary" onclick="saveInventoryItem()">সংরক্ষণ করুন</button>
+    </div>
+  </div>
+</div>
+
+<!-- Edit Product Modal (name/sell price/shop only) -->
+<div id="modal-edit-product" class="modal-overlay hidden">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>পণ্য সম্পাদনা</h3>
+      <button class="modal-close" onclick="closeModal('modal-edit-product')">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="ep-product-id" />
+      <div class="form-group"><label>পণ্যের নাম</label><input type="text" id="ep-name" /></div>
+      <div class="form-group"><label>বিক্রয় মূল্য (৳)</label><input type="number" id="ep-sell-price" /></div>
+      <div class="form-group"><label>শাখা</label><select id="ep-shop"></select></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-outline" onclick="closeModal('modal-edit-product')">বাতিল</button>
+      <button class="btn-primary" onclick="saveEditProduct()">সংরক্ষণ করুন</button>
     </div>
   </div>
 </div>
@@ -877,7 +1050,7 @@
         <button class="month-tab" onclick="switchMonthTab('transactions')">লেনদেন</button>
         <button class="month-tab" onclick="switchMonthTab('expenses')">খরচ</button>
         <button class="month-tab" onclick="switchMonthTab('products')">পণ্য</button>
-        <button class="month-tab" onclick="switchMonthTab('customers')">খদ্দের</button>
+        <button class="month-tab" onclick="switchMonthTab('customers')">গ্রাহকের</button>
         <button class="month-tab" onclick="switchMonthTab('insights')">💡 ইনসাইট</button>
       </div>
 

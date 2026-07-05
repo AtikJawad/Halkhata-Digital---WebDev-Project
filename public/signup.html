@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>হালখাতা Digital— নতুন অ্যাকাউন্ট</title>
+  <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;600;700&family=Tiro+Bangla&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --green-dark:#1a472a; --green-mid:#2d6a4f; --green-light:#40916c;
+      --amber:#e9c46a; --cream:#fdf6e3; --cream-dark:#f5ead4;
+      --border:#ddd4bc; --red:#e63946; --ink:#1a1a2e; --ink-light:#4a4a6a;
+    }
+    *{box-sizing:border-box;margin:0;padding:0;}
+    body{
+      font-family:'Hind Siliguri',sans-serif;min-height:100vh;
+      display:flex;align-items:center;justify-content:center;
+      background:linear-gradient(145deg,var(--green-dark) 0%,var(--green-mid) 60%,var(--green-light) 100%);
+      padding:1.5rem 1rem;
+    }
+    .card{
+      background:var(--cream);border-radius:20px;padding:2.2rem 2rem;
+      width:100%;max-width:420px;
+      box-shadow:0 20px 60px rgba(0,0,0,0.28);
+      animation:fadeUp .55s ease;
+    }
+    @keyframes fadeUp{
+
+      from{
+
+      opacity:0;
+      transform:translateY(25px);
+
+      }
+
+      to{
+
+      opacity:1;
+      transform:none;
+
+      }
+
+      }
+    
+    .logo-row{display:flex;align-items:center;gap:0.75rem;margin-bottom:1.6rem;}
+    .logo-icon{width:46px;height:46px;background:var(--green-dark);color:var(--amber);border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Tiro Bangla',serif;font-size:1.4rem;font-weight:700;flex-shrink:0;}
+    .logo-text h1{font-family:'Tiro Bangla',serif;font-size:1.3rem;color:var(--green-dark);}
+    .logo-text p{font-size:0.76rem;color:var(--ink-light);margin-top:1px;}
+    .form-group{margin-bottom:0.95rem;}
+    label{display:block;font-size:0.82rem;font-weight:700;color:var(--ink);margin-bottom:0.35rem;}
+    input{
+      width:100%;padding:0.65rem 0.9rem;border:1.5px solid var(--border);
+      border-radius:8px;font-family:'Hind Siliguri',sans-serif;font-size:0.95rem;
+      background:#fff;color:var(--ink);outline:none;
+      transition:border-color 0.18s,box-shadow 0.18s;
+    }
+    input:focus{border-color:var(--green-light);box-shadow:0 0 0 3px rgba(64,145,108,0.13);}
+    input::placeholder{color:#b8ad9e;}
+
+    .identifier-tabs{
+      display:flex;gap:0.4rem;margin-bottom:0.4rem;
+      background:var(--cream-dark);border-radius:8px;padding:3px;border:1px solid var(--border);
+    }
+    .id-tab{
+      flex:1;padding:0.45rem;border:none;border-radius:6px;
+      font-family:'Hind Siliguri',sans-serif;font-size:0.84rem;font-weight:600;
+      cursor:pointer;background:transparent;color:var(--ink-light);transition:all 0.15s;
+    }
+    .id-tab.active{background:#fff;box-shadow:0 2px 6px rgba(0,0,0,0.08);color:var(--green-dark);}
+
+    .pin-row{display:flex;gap:0.5rem;}
+    .pin-row input{letter-spacing:0.4rem;font-size:1.1rem;text-align:center;}
+    .eye-btn{
+      background:var(--cream-dark);border:1.5px solid var(--border);border-radius:8px;
+      padding:0 0.75rem;cursor:pointer;font-size:1rem;flex-shrink:0;transition:background 0.15s;
+    }
+    .eye-btn:hover{background:#e8f5e9;border-color:var(--green-light);}
+
+    .pin-hint{font-size:0.72rem;color:var(--ink-light);margin-top:0.3rem;}
+    .pin-match{font-size:0.75rem;margin-top:0.3rem;min-height:1rem;}
+    .match-ok{color:var(--green-mid);font-weight:600;}
+    .match-no{color:var(--red);font-weight:600;}
+
+    .btn{
+      width:100%;padding:0.75rem;background:var(--green-dark);color:#fff;
+      border:none;border-radius:8px;font-family:'Hind Siliguri',sans-serif;
+      font-size:1rem;font-weight:700;cursor:pointer;margin-top:0.5rem;
+      transition:background 0.15s,transform 0.15s,box-shadow 0.15s;
+      box-shadow:0 3px 12px rgba(26,71,42,0.22);
+    }
+    .btn:hover{background:var(--green-mid);transform:translateY(-1px);box-shadow:0 5px 16px rgba(26,71,42,0.28);}
+    .btn:disabled{opacity:0.6;cursor:not-allowed;transform:none;}
+
+    .error-msg{color:var(--red);font-size:0.82rem;margin-top:0.5rem;min-height:1.1rem;text-align:center;}
+    .success-msg{color:var(--green-mid);font-size:0.84rem;margin-top:0.5rem;text-align:center;font-weight:600;}
+
+    .login-link{text-align:center;margin-top:1.2rem;font-size:0.84rem;color:var(--ink-light);}
+    .login-link a{color:var(--green-mid);font-weight:700;text-decoration:none;}
+    .login-link a:hover{text-decoration:underline;}
+
+    .field-hint{font-size:0.71rem;color:var(--ink-light);margin-top:0.28rem;}
+  </style>
+</head>
+<body>
+<div class="card">
+
+  <div class="logo-row">
+    <div class="logo-icon">
+    <img src="/favicon-32x32.png" alt="হালখাতা Digital">
+  </div>
+    <div class="logo-text">
+      <h1>হালখাতা Digital</h1>
+      <p>নতুন অ্যাকাউন্ট তৈরি করুন</p>
+    </div>
+  </div>
+
+  <!-- Full name -->
+  <div class="form-group">
+    <label>আপনার পূর্ণ নাম *</label>
+    <input type="text" id="sg-name" placeholder="যেমন: রহিম উদ্দিন" autocomplete="name" />
+  </div>
+
+  <!-- Shop name -->
+  <div class="form-group">
+    <label>দোকানের নাম *</label>
+    <input type="text" id="sg-shop" placeholder="যেমন: রহিম স্টোর" autocomplete="organization" />
+    <div class="field-hint">রিপোর্ট ও রসিদে ব্যবহৃত হবে</div>
+  </div>
+
+  <!-- Phone or Email toggle -->
+  <div class="form-group">
+    <label>লগইন পরিচয় *</label>
+    <div class="identifier-tabs">
+      <button class="id-tab active" id="tab-phone" onclick="switchIdTab('phone')">📱 ফোন নম্বর</button>
+      <button class="id-tab"        id="tab-email" onclick="switchIdTab('email')">✉️ ইমেইল</button>
+    </div>
+    <div id="id-phone-wrap">
+      <input type="tel"   id="sg-phone" placeholder="০১XXXXXXXXX" autocomplete="tel" maxlength="11" />
+    </div>
+    <div id="id-email-wrap" style="display:none">
+      <input type="email" id="sg-email" placeholder="example@gmail.com" autocomplete="email" />
+    </div>
+    <div class="field-hint">লগইনের সময় এটি ব্যবহার করবেন</div>
+  </div>
+
+  <!-- PIN -->
+  <div class="form-group">
+    <label>৪ সংখ্যার PIN *</label>
+    <div class="pin-row">
+      <input type="password" id="sg-pin" maxlength="4" inputmode="numeric"
+             placeholder="••••" oninput="checkPinMatch()" />
+      <button class="eye-btn" type="button" onclick="toggleVis('sg-pin',this)">👁</button>
+    </div>
+    <div class="pin-hint">শুধু সংখ্যা ব্যবহার করুন</div>
+  </div>
+
+  <!-- Confirm PIN -->
+  <div class="form-group">
+    <label>PIN নিশ্চিত করুন *</label>
+    <div class="pin-row">
+      <input type="password" id="sg-pin2" maxlength="4" inputmode="numeric"
+             placeholder="••••" oninput="checkPinMatch()" />
+      <button class="eye-btn" type="button" onclick="toggleVis('sg-pin2',this)">👁</button>
+    </div>
+    <div class="pin-match" id="pin-match-msg"></div>
+  </div>
+
+  <p class="error-msg"   id="sg-error"></p>
+  <p class="success-msg hidden" id="sg-success"></p>
+
+  <button class="btn" id="sg-btn" onclick="doSignup()">✅ অ্যাকাউন্ট তৈরি করুন</button>
+
+  <div class="login-link">ইতিমধ্যে অ্যাকাউন্ট আছে? <a href="/login.html">লগইন করুন</a></div>
+</div>
+
+<script>
+  let idMode = 'phone';
+
+  function switchIdTab(mode) {
+    idMode = mode;
+    document.getElementById('tab-phone').classList.toggle('active', mode==='phone');
+    document.getElementById('tab-email').classList.toggle('active', mode==='email');
+    document.getElementById('id-phone-wrap').style.display = mode==='phone' ? '' : 'none';
+    document.getElementById('id-email-wrap').style.display = mode==='email' ? '' : 'none';
+  }
+
+  function toggleVis(id, btn) {
+    const inp = document.getElementById(id);
+    inp.type  = inp.type==='password' ? 'text' : 'password';
+    btn.textContent = inp.type==='password' ? '👁' : '🙈';
+  }
+
+  function checkPinMatch() {
+    const p1  = document.getElementById('sg-pin').value;
+    const p2  = document.getElementById('sg-pin2').value;
+    const msg = document.getElementById('pin-match-msg');
+    if (!p2) { msg.textContent=''; return; }
+    if (p1===p2 && p1.length===4) { msg.textContent='✅ PIN মিলছে'; msg.className='pin-match match-ok'; }
+    else                           { msg.textContent='PIN মিলছে না'; msg.className='pin-match match-no'; }
+  }
+
+  document.addEventListener('keydown', e => { if(e.key==='Enter') doSignup(); });
+
+  async function doSignup() {
+    const name  = document.getElementById('sg-name').value.trim();
+    const shop  = document.getElementById('sg-shop').value.trim();
+    const phone = document.getElementById('sg-phone').value.trim();
+    const email = document.getElementById('sg-email').value.trim();
+    const pin   = document.getElementById('sg-pin').value;
+    const pin2  = document.getElementById('sg-pin2').value;
+    const errEl = document.getElementById('sg-error');
+    const sucEl = document.getElementById('sg-success');
+    const btn   = document.getElementById('sg-btn');
+
+    errEl.textContent = '';
+    sucEl.classList.add('hidden');
+
+    if (!name)                 { errEl.textContent='নাম দিন';               return; }
+    if (!shop)                 { errEl.textContent='দোকানের নাম দিন';       return; }
+    if (idMode==='phone'&&!phone){ errEl.textContent='ফোন নম্বর দিন';       return; }
+    if (idMode==='email'&&!email){ errEl.textContent='ইমেইল ঠিকানা দিন';   return; }
+    if (pin.length!==4)        { errEl.textContent='PIN ৪ সংখ্যার হতে হবে'; return; }
+    if (pin!==pin2)            { errEl.textContent='PIN দুটি মিলছে না';     return; }
+
+    btn.disabled=true; btn.textContent='তৈরি হচ্ছে...';
+
+    try {
+      const res  = await fetch('/api/auth/signup', {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({
+          name, shopName:shop,
+          phone: idMode==='phone' ? phone : undefined,
+          email: idMode==='email' ? email : undefined,
+          pin
+        })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error||'সমস্যা হয়েছে');
+
+      sucEl.textContent = '✅ অ্যাকাউন্ট তৈরি হয়েছে! লগইন পেজে যাচ্ছেন...';
+      sucEl.classList.remove('hidden');
+      setTimeout(()=>{ window.location.href='/login.html'; }, 1800);
+    } catch(e) {
+      errEl.textContent = e.message;
+      btn.disabled=false; btn.textContent='✅ অ্যাকাউন্ট তৈরি করুন';
+    }
+  }
+</script>
+</body>
+</html>

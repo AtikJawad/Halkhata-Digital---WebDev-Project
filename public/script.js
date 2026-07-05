@@ -9,7 +9,7 @@ const translations = {
     addCustomer:    'নতুন গ্রাহক',
     addTransaction: 'লেনদেন যোগ করুন',
     dashboard:      'ড্যাশবোর্ড',
-    customers:      'খদ্দের',
+    customers:      'গ্রাহক',
     transactions:   'লেনদেন',
     overdue:        'বকেয়া',
     report:         'মাসিক রিপোর্ট',
@@ -43,9 +43,9 @@ const translations = {
     totalReceivable:'মোট পাওনা',
     totalPaid:      'মোট আদায়',
     overdueAmount:  'মেয়াদ উত্তীর্ণ',
-    totalCustomers: 'মোট খদ্দের',
+    totalCustomers: 'মোট গ্রাহক ',
     // Quick actions
-    quickAddCustomer:    'নতুন খদ্দের যোগ করুন',
+    quickAddCustomer:    'নতুন গ্রাহক যোগ করুন',
     quickAddTransaction: 'বাকি লেনদেন রেকর্ড করুন',
     quickViewDue:        'বকেয়া তালিকা দেখুন',
     quickBackup:         'ডেটা ব্যাকআপ করুন',
@@ -112,7 +112,7 @@ const translations = {
     dueSoon:        'Due Soon',
     // Stats
     totalReceivable:'Total Receivable',
-    totalPaid:      'Total Paid',
+    totalPaid:      'Total Collections',
     overdueAmount:  'Overdue Amount',
     totalCustomers: 'Total Customers',
     // Quick actions
@@ -185,7 +185,7 @@ const API = async (path, opts = {}) => {
   });
   if (resp.status === 401) {
     sessionStorage.removeItem('halkhata_auth');
-    window.location.href = '/login';
+    window.location.href = '/login.html';
     throw new Error('Session expired');
   }
   if (!resp.ok) throw new Error(`API error ${resp.status}`);
@@ -271,7 +271,7 @@ function enterApp(data) {
 async function logout() {
   await fetch('/api/logout', { method: 'POST' });
   sessionStorage.removeItem('halkhata_auth');
-  window.location.href = '/login';
+  window.location.href = '/login.html';
 }
 
 // Check session on load
@@ -284,10 +284,10 @@ window.addEventListener('load', async () => {
       sessionStorage.setItem('halkhata_auth', JSON.stringify(data));
       enterApp(data);
     } else {
-      window.location.href = '/login';
+      window.location.href = '/login.html';
     }
   } catch {
-    window.location.href = '/login';
+    window.location.href = '/login.html';
   }
   setupOfflineDetection();
 });
@@ -428,8 +428,8 @@ function exportYearlyCSV(data, year) {
     ['বছর:', year],
     ['শাখা:', shop],
     [],
-    ['মাস', 'রাজস্ব (৳)', 'খরচ (৳)', 'নেট লাভ/ক্ষতি (৳)',
-     'বাকি বিক্রি (৳)', 'নগদ বিক্রি (৳)', 'আদায় (৳)',
+    ['মাস', 'আদায় (৳)', 'খরচ (৳)', 'নেট লাভ/ক্ষতি (৳)',
+     'বাকি বিক্রি (৳)', 'নগদ বিক্রি (৳)', 'পরিশোধ আদায় (৳)',
      'লেনদেন সংখ্যা', 'খরচ সংখ্যা'],
     ...data.months.map(m => [
       m.monthName,
@@ -478,8 +478,8 @@ function exportMonthlyCSV(d) {
   const rows = [
     // ── SECTION 1: Summary ──────────────────────────────
     ['━━ অংশ ১: মাসিক সারসংক্ষেপ ━━'],
-    ['মাস', 'বছর', 'শাখা', 'রাজস্ব (৳)', 'খরচ (৳)', 'নেট লাভ/ক্ষতি (৳)',
-     'বর্তমান বাকি (৳)', 'মেয়াদউত্তীর্ণ (৳)', 'লেনদেন সংখ্যা', 'সক্রিয় খদ্দের'],
+    ['মাস', 'বছর', 'শাখা', 'আদায় (৳)', 'খরচ (৳)', 'নেট লাভ/ক্ষতি (৳)',
+     'বর্তমান বাকি (৳)', 'মেয়াদউত্তীর্ণ (৳)', 'লেনদেন সংখ্যা', 'সক্রিয় গ্রাহক '],
     [d.monthName, d.year, shop,
      s.totalRevenue, s.totalExpense, s.netProfit,
      s.totalCurrentDue, s.overdueAmt,
@@ -488,7 +488,7 @@ function exportMonthlyCSV(d) {
 
     // ── SECTION 2: Transactions ──────────────────────────
     ['━━ অংশ ২: লেনদেন ━━'],
-    ['তারিখ', 'খদ্দের', 'পণ্য', 'পরিমাণ', 'মোট (৳)',
+    ['তারিখ', 'গ্রাহক ', 'পণ্য', 'পরিমাণ', 'মোট (৳)',
      'পরিশোধিত (৳)', 'বাকি (৳)', 'পেমেন্ট মাধ্যম', 'ধরন'],
     ...(d.transactions || []).map(t => [
       new Date(t.date).toLocaleDateString('bn-BD'),
@@ -517,8 +517,8 @@ function exportMonthlyCSV(d) {
     [],
 
     // ── SECTION 4: Top Customers ─────────────────────────
-    ['━━ অংশ ৪: শীর্ষ খদ্দের ━━'],
-    ['খদ্দের', 'মোট কেনাকাটা (৳)', 'পরিশোধ (৳)', 'বর্তমান বাকি (৳)', 'বিশ্বস্ততা স্কোর', 'পরিশোধ হার (%)'],
+    ['━━ অংশ ৪: শীর্ষ গ্রাহক  ━━'],
+    ['গ্রাহক ', 'মোট কেনাকাটা (৳)', 'পরিশোধ (৳)', 'বর্তমান বাকি (৳)', 'বিশ্বস্ততা স্কোর', 'পরিশোধ হার (%)'],
     ...(d.customerStats || []).map(c => [
       c.name,
       c.purchased,
@@ -531,7 +531,7 @@ function exportMonthlyCSV(d) {
 
     // ── SECTION 5: Top Products ──────────────────────────
     ['━━ অংশ ৫: শীর্ষ পণ্য ━━'],
-    ['পণ্য', 'বিক্রয় পরিমাণ', 'রাজস্ব (৳)', 'লেনদেন সংখ্যা', 'বর্তমান স্টক'],
+    ['পণ্য', 'বিক্রয় পরিমাণ', 'আদায় (৳)', 'লেনদেন সংখ্যা', 'বর্তমান স্টক'],
     ...(d.productStats || []).map(p => [
       p.name,
       p.qty,
@@ -622,10 +622,10 @@ function generateYearlyPrintHTML(data, year, chartDataURL) {
 
   // ── Insight rows ──────────────────────────────────────
   const insightRows = [
-    ['🏆 সেরা মাস (লাভ)',       bestMonth,    bestMonth    ? fmt(bestMonth.profit)         : '—'],
-    ['📈 সর্বোচ্চ রাজস্ব',      highRevMonth, highRevMonth ? fmt(highRevMonth.totalRevenue) : '—'],
-    ['💸 সর্বোচ্চ খরচ',         highExpMonth, highExpMonth ? fmt(highExpMonth.totalExpense) : '—'],
-    ['💰 সর্বোচ্চ আদায়',        highColMonth, highColMonth ? fmt(highColMonth.totalCredit)  : '—']
+    ['🏆 সর্বোচ্চ আদায়ের মাস',       bestMonth,    bestMonth    ? fmt(bestMonth.profit)         : '—'],
+    ['📈 সর্বোচ্চ লাভের মাস',      highRevMonth, highRevMonth ? fmt(highRevMonth.totalRevenue) : '—'],
+    ['💸 সর্বোচ্চ খরচের মাস',         highExpMonth, highExpMonth ? fmt(highExpMonth.totalExpense) : '—'],
+    ['💰 সর্বোচ্চ পরিশোধ আদায়',        highColMonth, highColMonth ? fmt(highColMonth.totalCredit)  : '—']
   ].map(([label, month, value]) => `
     <tr>
       <td>${label}</td>
@@ -636,7 +636,7 @@ function generateYearlyPrintHTML(data, year, chartDataURL) {
   // ── Chart image ───────────────────────────────────────
   const chartSection = chartDataURL
     ? `<div class="section">
-         <h2 class="section-title">📊 মাসিক রাজস্ব · খরচ · লাভ/ক্ষতি</h2>
+         <h2 class="section-title">📊 মাসিক আদায় · খরচ · লাভ/ক্ষতি</h2>
          <img src="${chartDataURL}" style="width:100%;max-height:280px;
                object-fit:contain;border:1px solid #e0e0e0;border-radius:6px" />
        </div>`
@@ -861,7 +861,7 @@ function generateYearlyPrintHTML(data, year, chartDataURL) {
     <h2 class="section-title">📊 বার্ষিক সারসংক্ষেপ</h2>
     <div class="kpi-grid">
       <div class="kpi-card">
-        <div class="kpi-label">💰 মোট রাজস্ব</div>
+        <div class="kpi-label">💰 মোট আদায়</div>
         <div class="kpi-value green">${fmt(totalRevenue)}</div>
       </div>
       <div class="kpi-card" style="border-top-color:#e63946">
@@ -914,7 +914,7 @@ function generateYearlyPrintHTML(data, year, chartDataURL) {
       <thead>
         <tr>
           <th>মাস</th>
-          <th style="text-align:right">রাজস্ব (৳)</th>
+          <th style="text-align:right">আদায় (৳)</th>
           <th style="text-align:right">খরচ (৳)</th>
           <th style="text-align:right">লাভ/ক্ষতি (৳)</th>
           <th style="text-align:right">বাকি বিক্রি (৳)</th>
@@ -926,7 +926,7 @@ function generateYearlyPrintHTML(data, year, chartDataURL) {
       <tfoot>
         <tr>
           <td>মোট</td>
-          <td class="num green">${fmt(totalRevenue)}</td>
+          <td class="num green">${fmt(totalRevenue)}</td>  <!-- আদায় column -->
           <td class="num red">${fmt(totalExpense)}</td>
           <td class="num ${totalProfit >= 0 ? 'green' : 'red'}">
             ${totalProfit >= 0 ? '+' : ''}${fmt(totalProfit)}
@@ -1025,7 +1025,7 @@ function generateMonthlyPrintHTML(d, chartImages) {
   const insightRows = [
     ['📦 সেরা পণ্য',          topProduct  ? topProduct.name             : '—',
      topProduct  ? `${fmtNum(topProduct.qty)} বিক্রয় · ${fmt(topProduct.revenue)}` : '—'],
-    ['👤 শীর্ষ খদ্দের',       topCustomer ? topCustomer.name            : '—',
+    ['👤 শীর্ষ গ্রাহক ',       topCustomer ? topCustomer.name            : '—',
      topCustomer ? `${fmt(topCustomer.purchased)} কেনাকাটা`             : '—'],
     ['🧾 সর্বোচ্চ খরচ ক্যাট', topCategory ? (CAT_BN[topCategory.category] || topCategory.category) : '—',
      topCategory ? fmt(topCategory.amount)                              : '—'],
@@ -1230,7 +1230,7 @@ function generateMonthlyPrintHTML(d, chartImages) {
     <h2 class="sec-title">📊 মাসিক সারসংক্ষেপ</h2>
     <div class="kpi-grid">
       <div class="kpi">
-        <div class="kpi-l">💰 মোট রাজস্ব</div>
+        <div class="kpi-l">💰 মোট আদায়</div>
         <div class="kpi-v green">${fmt(s.totalRevenue)}</div>
       </div>
       <div class="kpi" style="border-top-color:#e63946">
@@ -1248,11 +1248,11 @@ function generateMonthlyPrintHTML(d, chartImages) {
         <div class="kpi-v amber">${fmt(s.creditSalesAmt)}</div>
       </div>
       <div class="kpi" style="border-top-color:#2d6a4f">
-        <div class="kpi-l">💵 নগদ বিক্রি</div>
+        <div class="kpi-l">✅ আদায় (নগদ বিক্রি)</div>
         <div class="kpi-v green">${fmt(s.cashSalesAmt)}</div>
       </div>
       <div class="kpi" style="border-top-color:#2d6a4f">
-        <div class="kpi-l">✅ আদায়</div>
+        <div class="kpi-l">✅ আদায় (পরিশোধ)</div>
         <div class="kpi-v green">${fmt(s.collectionsAmt)}</div>
       </div>
       <div class="kpi" style="border-top-color:#e63946">
@@ -1264,7 +1264,7 @@ function generateMonthlyPrintHTML(d, chartImages) {
         <div class="kpi-v red">${fmt(s.overdueAmt)}</div>
       </div>
       <div class="kpi">
-        <div class="kpi-l">📋 লেনদেন / খদ্দের</div>
+        <div class="kpi-l">📋 লেনদেন / গ্রাহক </div>
         <div class="kpi-v">${fmtNum(s.txnCount)} / ${fmtNum(s.customerCount||0)}</div>
       </div>
     </div>
@@ -1284,7 +1284,7 @@ function generateMonthlyPrintHTML(d, chartImages) {
     ? `<div class="sec">
          <h2 class="sec-title">📊 চার্ট</h2>
          <div class="chart-grid">
-           ${chartImg(chartImages.summaryBar, 'রাজস্ব vs খরচ')}
+           ${chartImg(chartImages.summaryBar, 'আদায়  vs খরচ')}
            ${chartImg(chartImages.dailyLine,  'দৈনিক নগদ প্রবাহ')}
            ${chartImg(chartImages.expDonut,   'খরচ ক্যাটাগরি')}
            ${chartImg(chartImages.payDonut,   'পেমেন্ট মাধ্যম')}
@@ -1301,7 +1301,7 @@ function generateMonthlyPrintHTML(d, chartImages) {
     <table>
       <thead>
         <tr>
-          <th>তারিখ</th><th>খদ্দের</th><th>পণ্য</th>
+          <th>তারিখ</th><th>গ্রাহক</th><th>পণ্য</th>
           <th style="text-align:right">মোট</th>
           <th style="text-align:right">পরিশোধ</th>
           <th style="text-align:right">বাকি</th>
@@ -1313,7 +1313,7 @@ function generateMonthlyPrintHTML(d, chartImages) {
         <tr>
           <td colspan="3">মোট</td>
           <td style="text-align:right">${fmt(s.creditSalesAmt + s.cashSalesAmt)}</td>
-          <td style="text-align:right">${fmt(s.collectionsAmt + s.cashSalesAmt)}</td>
+          <td style="text-align:right">${fmt(s.collectionsAmt + s.cashSalesAmt)}</td> <!-- আদায় -->
           <td style="text-align:right;color:#e63946">${fmt(s.totalCurrentDue)}</td>
           <td colspan="2"></td>
         </tr>
@@ -1353,7 +1353,7 @@ function generateMonthlyPrintHTML(d, chartImages) {
         <tr>
           <th>পণ্য</th>
           <th style="text-align:right">বিক্রয়</th>
-          <th style="text-align:right">রাজস্ব</th>
+          <th style="text-align:right">আদায় </th>
           <th style="text-align:right">লেনদেন</th>
           <th style="text-align:right">বর্তমান স্টক</th>
         </tr>
@@ -1365,11 +1365,11 @@ function generateMonthlyPrintHTML(d, chartImages) {
   <!-- Section 7: Top Customers -->
   ${(d.customerStats||[]).length ? `
   <div class="sec">
-    <h2 class="sec-title">👥 শীর্ষ খদ্দের</h2>
+    <h2 class="sec-title">👥 শীর্ষ গ্রাহক</h2>
     <table>
       <thead>
         <tr>
-          <th>খদ্দের</th>
+          <th>গ্রাহক</th>
           <th style="text-align:right">কেনাকাটা</th>
           <th style="text-align:right">পরিশোধ</th>
           <th style="text-align:right">বাকি</th>
@@ -1391,6 +1391,101 @@ function generateMonthlyPrintHTML(d, chartImages) {
 </html>`;
 }
 
+// ─── Tooltip definitions ──────────────────────────────
+const KPI_TIPS = {
+  totalReceivable: 'মোট পাওনা\n= গ্রাহকের কাছে এখনো\nবাকি আছে যা আদায় হয়নি',
+  totalPaid:       'মোট আদায়\n= নগদ বিক্রি + গ্রাহকের\nপরিশোধ করা বকেয়া',
+  overdueAmount:   'মেয়াদউত্তীর্ণ\n= পরিশোধের তারিখ পার\nহয়ে গেছে এমন বকেয়া',
+  totalCustomers:  'মোট গ্রাহক \n= অ্যাপে নিবন্ধিত\nসকল সক্রিয় গ্রাহক ',
+  totalSales:      'মোট বিক্রি\n= নগদ বিক্রি\n+ বাকিতে বিক্রি',
+  totalAdai:       'মোট আদায়\n= নগদ বিক্রি\n+ গ্রাহকের পরিশোধ',
+  cashSales:       'নগদ বিক্রি\n= সঙ্গে সঙ্গে টাকা\nপাওয়া বিক্রয়',
+  creditSales:     'বাকিতে বিক্রি\n= পরে পরিশোধের\nশর্তে বিক্রয়',
+  collections:     'পরিশোধ আদায়\n= গ্রাহক পুরনো\nবাকি পরিশোধ করেছেন',
+  netProfit:       'নেট লাভ/ক্ষতি\n= মোট আদায়\n− মোট খরচ',
+  totalExpense:    'মোট খরচ\n= দোকানের সকল\nপরিচালনা খরচ',
+  currentDue:      'বর্তমান বাকি\n= মোট বাকি বিক্রি\n− মোট পরিশোধ',
+  overdueAmt:      'মেয়াদউত্তীর্ণ বকেয়া\n= শেষ তারিখ পেরিয়ে\nগেছে এমন বাকি',
+  trustScore:      'বিশ্বস্ততা স্কোর\n= সময়মতো পরিশোধের\nইতিহাসের উপর ভিত্তি করে',
+  weeklyCredit:    'এই সপ্তাহের আদায়\n= গত ৭ দিনে\nপ্রাপ্ত অর্থ',
+  highRisk:        'ঝুঁকিপূর্ণ গ্রাহক \n= বিশ্বস্ততা স্কোর\n৪০ এর নিচে',
+};
+
+// Helper: renders a ? icon with tooltip
+function tipIcon(key, extraClass) {
+  const tip = KPI_TIPS[key] || '';
+  const cls = extraClass ? `kpi-help ${extraClass}` : 'kpi-help';
+  return `<button class="${cls}" data-tip="${tip}" tabindex="0" aria-label="সাহায্য">?</button>`;
+}
+
+// ─── Body-anchored tooltip engine ─────────────────────
+(function initTooltipEngine() {
+  // Create single shared bubble appended to body
+  const bubble = document.createElement('div');
+  bubble.id    = 'kpi-tooltip-bubble';
+  document.body.appendChild(bubble);
+
+  let hideTimer = null;
+
+  function show(btn) {
+    const tip = btn.getAttribute('data-tip');
+    if (!tip) return;
+
+    clearTimeout(hideTimer);
+    bubble.textContent = tip;    // safe — no HTML in tips
+    bubble.classList.remove('tip-above', 'tip-below', 'visible');
+
+    const rect      = btn.getBoundingClientRect();
+    const bubbleW   = 220;
+    const margin    = 8;
+
+    // Position: try above first
+    const spaceAbove = rect.top;
+    const spaceBelow = window.innerHeight - rect.bottom;
+    const placeAbove = spaceAbove > 80 || spaceAbove > spaceBelow;
+
+    // Horizontal centre on button, clamped to viewport
+    let left = rect.left + rect.width / 2 - bubbleW / 2;
+    left = Math.max(margin, Math.min(left, window.innerWidth - bubbleW - margin));
+
+    if (placeAbove) {
+      bubble.style.top    = `${rect.top - margin}px`;
+      bubble.style.left   = `${left}px`;
+      bubble.style.transform = 'translateY(-100%)';
+      bubble.classList.add('tip-above');
+    } else {
+      bubble.style.top    = `${rect.bottom + margin}px`;
+      bubble.style.left   = `${left}px`;
+      bubble.style.transform = 'none';
+      bubble.classList.add('tip-below');
+    }
+
+    bubble.classList.add('visible');
+  }
+
+  function hide() {
+    hideTimer = setTimeout(() => bubble.classList.remove('visible'), 80);
+  }
+
+  // Delegate — works for dynamically rendered buttons too
+  document.addEventListener('mouseover', e => {
+    const btn = e.target.closest('.kpi-help');
+    if (btn) show(btn);
+  });
+  document.addEventListener('mouseout', e => {
+    if (e.target.closest('.kpi-help')) hide();
+  });
+  document.addEventListener('focusin', e => {
+    const btn = e.target.closest('.kpi-help');
+    if (btn) show(btn);
+  });
+  document.addEventListener('focusout', e => {
+    if (e.target.closest('.kpi-help')) hide();
+  });
+  // Hide on scroll (position would be stale)
+  document.addEventListener('scroll', () => bubble.classList.remove('visible'), true);
+})();
+
 // ─── Dashboard ────────────────────────────────────────
 async function loadDashboard() {
   try {
@@ -1403,21 +1498,24 @@ async function loadDashboard() {
       weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'
     });
 
-    // ── KPI cards ─────────────────────────────────────────
-    const kpis = [
-      { icon:'💵', label:'মোট পাওনা',    value: data.totalReceivable, fmt: formatTaka,   border:'#40916c', ibg:'rgba(64,145,108,0.1)',  sub:`এই সপ্তাহে: ${formatTaka(data.weeklyDebit||0)}` },
-      { icon:'✅', label:'মোট আদায়',     value: data.totalPaid,        fmt: formatTaka,   border:'#52b788', ibg:'rgba(82,183,136,0.1)',  sub:`সপ্তাহে: ${formatTaka(data.weeklyCredit||0)}` },
-      { icon:'⚠️', label:'মেয়াদউত্তীর্ণ', value: data.overdueAmount,  fmt: formatTaka,   border:'#e63946', ibg:'rgba(230,57,70,0.09)', sub:`${formatNumber(data.overdueCount||0)} লেনদেন বকেয়া`, danger:true },
-      { icon:'👥', label:'মোট খদ্দের',   value: data.totalCustomers,   fmt: formatNumber, border:'#e9c46a', ibg:'rgba(233,196,106,0.13)', sub:`ঝুঁকিপূর্ণ: ${formatNumber(data.highRiskCustomers||0)} জন` }
+    // ── KPI cards eikhane ───────────────────────────────────────── 
+const kpiCards = [
+      { icon:'💵', label:'মোট পাওনা',      tipKey:'totalReceivable', value: formatTaka(data.totalReceivable),  border:'#40916c', ibg:'rgba(64,145,108,0.1)',  sub:`এই সপ্তাহে: ${formatTaka(data.weeklyDebit||0)}` },
+      { icon:'✅', label:'মোট আদায়',        tipKey:'totalPaid',       value: formatTaka(data.totalPaid),        border:'#52b788', ibg:'rgba(82,183,136,0.1)',  sub:`সপ্তাহে: ${formatTaka(data.weeklyCredit||0)}` },
+      { icon:'⚠️', label:'মেয়াদউত্তীর্ণ', tipKey:'overdueAmount',   value: formatTaka(data.overdueAmount),   border:'#e63946', ibg:'rgba(230,57,70,0.09)', sub:`${formatNumber(data.overdueCount||0)} লেনদেন বকেয়া`, danger:true },
+      { icon:'👥', label:'মোট গ্রাহক',     tipKey:'totalCustomers',  value: formatNumber(data.totalCustomers), border:'#e9c46a', ibg:'rgba(233,196,106,0.13)', sub:`ঝুঁকিপূর্ণ: ${formatNumber(data.highRiskCustomers||0)} জন` }
     ];
 
-    const kpiHTML = kpis.map(k => `
-      <div class="db2-kpi">
-        <div class="db2-kpi-header" style="border-top-color:${k.border}">
+    const kpiHTML = kpiCards.map((k, i) => `
+      <div class="db2-kpi" style="border-top-color:${k.border}">
+        <div class="db2-kpi-header">
           <div class="db2-kpi-icon" style="background:${k.ibg}">${k.icon}</div>
-          <span class="db2-kpi-lbl">${k.label}</span>
+          <div class="kpi-tooltip-wrap">
+            <span class="db2-kpi-lbl">${k.label}</span>
+            ${tipIcon(k.tipKey, i >= 2 ? 'tip-left' : '')}
+          </div>
         </div>
-        <div class="db2-kpi-val ${k.danger?'db2-danger':''}">${k.fmt(k.value)}</div>
+        <div class="db2-kpi-val ${k.danger?'db2-danger':''}">${k.value}</div>
         <div class="db2-kpi-sub">${k.sub}</div>
       </div>`).join('');
 
@@ -1516,7 +1614,7 @@ async function loadDashboard() {
 
     // ── Quick actions ─────────────────────────────────────
     const QUICK = [
-      { icon:'👤', label:'নতুন খদ্দের',    fn:`navigate('customers');setTimeout(openAddCustomer,200)` },
+      { icon:'👤', label:'নতুন গ্রাহক',    fn:`navigate('customers');setTimeout(openAddCustomer,200)` },
       { icon:'➕', label:'বাকি রেকর্ড',     fn:`openAddTransaction()`  },
       { icon:'📞', label:'বকেয়া তালিকা',   fn:`navigate('overdue')`   },
       { icon:'📈', label:'রিপোর্ট',         fn:`navigate('report')`    },
@@ -1577,7 +1675,7 @@ async function loadDashboard() {
 
         <!-- COL 3: Top Due Customers -->
         <div class="db2-card">
-          <div class="db2-card-hdr">🏆 সর্বোচ্চ বাকি খদ্দের</div>
+          <div class="db2-card-hdr">🏆 সর্বোচ্চ বাকি গ্রাহক</div>
           <div class="db2-card-body">${topDueHTML}</div>
         </div>
 
@@ -1710,7 +1808,7 @@ async function loadCustomers() {
   const el = $('customer-list');
 
   if (!customers.length) {
-    el.innerHTML = '<div class="empty-state" style="grid-column:1/-1"><div class="empty-icon">👥</div><p>কোনো খদ্দের পাওয়া যায়নি</p></div>';
+    el.innerHTML = '<div class="empty-state" style="grid-column:1/-1"><div class="empty-icon">👥</div><p>কোনো গ্রাহক পাওয়া যায়নি</p></div>';
     return;
   }
 
@@ -1749,7 +1847,7 @@ async function loadCustomers() {
 function searchCustomers() { loadCustomers(); }
 
 function openAddCustomer() {
-  $('customer-modal-title').textContent = 'নতুন খদ্দের যোগ করুন';
+  $('customer-modal-title').textContent = 'নতুন গ্রাহক  যোগ করুন';
   $('customer-id').value = '';
   $('c-name').value = '';
   $('c-phone').value = '';
@@ -1775,10 +1873,10 @@ async function saveCustomer() {
   try {
     if (id) {
       await API(`/api/customers/${id}`, { method: 'PUT', body: JSON.stringify(body) });
-      showToast('খদ্দেরের তথ্য আপডেট হয়েছে');
+      showToast('গ্রাহকের তথ্য আপডেট হয়েছে');
     } else {
       await API('/api/customers', { method: 'POST', body: JSON.stringify(body) });
-      showToast('নতুন খদ্দের যোগ হয়েছে ✅');
+      showToast('নতুন গ্রাহক  যোগ হয়েছে ✅');
     }
     closeModal('modal-customer');
     loadCustomers();
@@ -1909,7 +2007,7 @@ async function openCustomerDetail(id) {
       </div>
       <div>
         <div style="font-weight:700;color:${trustColor};margin-bottom:0.35rem">
-          ${trustLabel} খদ্দের
+          ${trustLabel} গ্রাহক
         </div>
         <div style="display:flex;flex-wrap:wrap;gap:0.3rem">
           ${trustReasons.map(r => `
@@ -1953,7 +2051,7 @@ function buildTrustReasons(stats, trust) {
   if (stats.txnCount >= 10)
     reasons.push({ text: `📊 নিয়মিত (${formatNumber(stats.txnCount)} লেনদেন)`, bg: 'var(--cream-dark)', color: 'var(--ink)' });
   else if (stats.txnCount > 0)
-    reasons.push({ text: `📊 নতুন খদ্দের (${formatNumber(stats.txnCount)} লেনদেন)`, bg: 'var(--cream-dark)', color: 'var(--ink)' });
+    reasons.push({ text: `📊 নতুন গ্রাহক (${formatNumber(stats.txnCount)} লেনদেন)`, bg: 'var(--cream-dark)', color: 'var(--ink)' });
 
   return reasons;
 }
@@ -2060,7 +2158,7 @@ async function deleteCurrentCustomer() {
   if (!currentCustomer) return;
   if (!confirm(`"${currentCustomer.name}" কে মুছবেন? সব লেনদেনও মুছে যাবে।`)) return;
   await API(`/api/customers/${currentCustomer.id}`, { method: 'DELETE' });
-  showToast('খদ্দের মুছে গেছে');
+  showToast('গ্রাহক  মুছে গেছে');
   closeModal('modal-customer-detail');
   loadCustomers();
 }
@@ -2355,18 +2453,21 @@ async function openAddTransaction(preselectedCustomerId = null) {
   }
 
   // ── Inventory ─────────────────────────────────────────
+ // ── Products ──────────────────────────────────────────
   let offlineInventory = false;
   let inventoryItems;
   try {
-    inventoryItems = await API(`/api/inventory${currentShop ? `?shop=${encodeURIComponent(currentShop)}` : ''}`);
+    inventoryItems = await API(`/api/products${currentShop ? `?shop=${encodeURIComponent(currentShop)}` : ''}`);
     if (!currentShop) cacheSet(CACHE_KEYS.inventory, inventoryItems);
   } catch {
     inventoryItems   = cacheGetForce(CACHE_KEYS.inventory) || [];
     offlineInventory = true;
     if (inventoryItems.length) showOfflineCacheIndicator();
   }
-
   buildProductSS(inventoryItems, offlineInventory || offlineCustomers);
+  $('batch-choice-group').style.display = 'none';
+  $('t-choose-batch').checked = false;
+  $('t-batch-list').classList.add('hidden');
 
   openModal('modal-transaction');
 }
@@ -2479,9 +2580,9 @@ async function saveTransaction() {
     // Check if user typed something but didn't select
     const searchVal = (document.getElementById('t-customer-search')?.value || '').trim();
     if (searchVal) {
-      showToast('তালিকা থেকে খদ্দের বাছুন!', 'error');
+      showToast('তালিকা থেকে গ্রাহক বাছুন!', 'error');
     } else {
-      showToast('খদ্দের বাছুন!', 'error');
+      showToast('গ্রাহক বাছুন!', 'error');
     }
     return;
   }
@@ -2532,7 +2633,8 @@ async function saveTransaction() {
           note:          $('t-note').value.trim() || prodName,
           dueDate:       currentPayMode === 'credit' ? ($('t-duedate').value || null) : null,
           shop:          selectedShop,
-          paymentMethod: ($('t-sale-method')?.value || null)
+          paymentMethod: ($('t-sale-method')?.value || null),
+          batchId:       $('t-choose-batch')?.checked ? selectedBatchId : null
         })
       });
 
@@ -2698,33 +2800,33 @@ async function loadReport() {
   const activeMonths = data.months.filter(m => m.transactionCount > 0).length;
 
   // ── KPI Cards ─────────────────────────────────────────
-  const kpiCards = [
-    { icon: '💰', label: t('totalReceivable') || 'মোট রাজস্ব',  value: formatTaka(totalRevenue),  color: 'var(--green-light)', border: 'var(--green-light)' },
-    { icon: '🧾', label: 'মোট খরচ',                             value: formatTaka(totalExpense),  color: 'var(--red)',          border: 'var(--red)'         },
-    { icon: '📈', label: 'নেট লাভ/ক্ষতি',                       value: (totalProfit >= 0 ? '+' : '') + formatTaka(totalProfit),
-      color: totalProfit >= 0 ? 'var(--green-light)' : 'var(--red)',
-      border: totalProfit >= 0 ? 'var(--green-light)' : 'var(--red)' },
-    { icon: '⏳', label: 'বাকিতে বিক্রি',                        value: formatTaka(totalDebit),    color: 'var(--amber-dark)',   border: 'var(--amber-dark)'  },
-    { icon: '📋', label: 'মোট লেনদেন',                           value: formatNumber(totalTxns),   color: 'var(--green-dark)',   border: 'var(--green-mid)'   },
-    { icon: '📅', label: 'সক্রিয় মাস',                          value: formatNumber(activeMonths),color: 'var(--green-dark)',   border: 'var(--green-mid)'   },
-    { icon: '🏆', label: 'সেরা মাস',
-      value: bestMonth ? bestMonth.monthName : '—',
-      color: 'var(--amber-dark)', border: 'var(--amber-dark)' },
-    { icon: '💹', label: 'গড় মাসিক লাভ',
-      value: activeMonths > 0 ? formatTaka(Math.round(totalProfit / activeMonths)) : '৳০',
-      color: totalProfit >= 0 ? 'var(--green-light)' : 'var(--red)',
-      border: totalProfit >= 0 ? 'var(--green-light)' : 'var(--red)' }
-  ].map(k => `
-    <div style="background:#fff;border-radius:var(--radius-sm);padding:0.75rem 0.9rem;
-                border-top:3px solid ${k.border};box-shadow:0 1px 6px var(--shadow)">
-      <div style="font-size:0.72rem;color:var(--ink-light);margin-bottom:0.3rem">
-        ${k.icon} ${k.label}
-      </div>
-      <div style="font-size:1rem;font-weight:700;color:${k.color};
-                  white-space:nowrap;overflow:hidden;text-overflow:ellipsis">
-        ${k.value}
-      </div>
-    </div>`).join('');
+const kpiCards = [
+      { icon: '💰', label: 'মোট আদায়',      tipKey:'Collections',      value: formatTaka(totalRevenue),  color: 'var(--green-light)', border: 'var(--green-light)' },
+      { icon: '🧾', label: 'মোট খরচ',        tipKey:'totalExpense',   value: formatTaka(totalExpense),  color: 'var(--red)',          border: 'var(--red)'         },
+      { icon: '📈', label: 'নেট লাভ/ক্ষতি',  tipKey:'netProfit',      value: (totalProfit >= 0 ? '+' : '') + formatTaka(totalProfit),
+        color: totalProfit >= 0 ? 'var(--green-light)' : 'var(--red)',
+        border: totalProfit >= 0 ? 'var(--green-light)' : 'var(--red)' },
+      { icon: '⏳', label: 'বাকিতে বিক্রি',  tipKey:'creditSales',    value: formatTaka(totalDebit),    color: 'var(--amber-dark)',   border: 'var(--amber-dark)'  },
+      { icon: '📋', label: 'মোট লেনদেন',     tipKey:null,             value: formatNumber(totalTxns),   color: 'var(--green-dark)',   border: 'var(--green-mid)'   },
+      { icon: '📅', label: 'সক্রিয় মাস',     tipKey:null,             value: formatNumber(activeMonths),color: 'var(--green-dark)',   border: 'var(--green-mid)'   },
+      { icon: '🏆', label: 'সেরা মাস',        tipKey:null,             value: bestMonth ? bestMonth.monthName : '—', color: 'var(--amber-dark)', border: 'var(--amber-dark)' },
+      { icon: '💹', label: 'গড় মাসিক লাভ',   tipKey:'netProfit',      value: activeMonths > 0 ? formatTaka(Math.round(totalProfit / activeMonths)) : '৳০',
+        color: totalProfit >= 0 ? 'var(--green-light)' : 'var(--red)',
+        border: totalProfit >= 0 ? 'var(--green-light)' : 'var(--red)' }
+    ].map((k, i) => `
+      <div style="background:#fff;border-radius:var(--radius-sm);padding:0.75rem 0.9rem;
+                  border-top:3px solid ${k.border};box-shadow:var(--elev-1)">
+        <div style="display:flex;align-items:center;gap:0.3rem;
+                    font-size:0.72rem;color:var(--ink-light);margin-bottom:0.3rem">
+          ${k.icon}
+          <span>${k.label}</span>
+          ${k.tipKey ? tipIcon(k.tipKey, i >= 4 ? 'tip-left' : '') : ''}
+        </div>
+        <div style="font-size:1rem;font-weight:700;color:${k.color};
+                    white-space:nowrap;overflow:hidden;text-overflow:ellipsis">
+          ${k.value}
+        </div>
+      </div>`).join('');
 
   // ── Yearly Insights ───────────────────────────────────
   const activeMonthsData = data.months.filter(m => m.transactionCount > 0 || m.expenseCount > 0);
@@ -2737,11 +2839,11 @@ async function loadReport() {
   const highTxnMonth  = activeMonthsData.reduce((b, m) => m.transactionCount > (b?.transactionCount || 0) ? m : b, null);
 
   const insightItems = [
-    { icon: '🏆', label: 'সর্বোচ্চ রাজস্ব',  month: highRevMonth,  value: highRevMonth  ? formatTaka(highRevMonth.totalRevenue)    : '—', color: 'var(--green-light)' },
+    { icon: '🏆', label: 'সর্বোচ্চ আদায়ের মাস',  month: highRevMonth,  value: highRevMonth  ? formatTaka(highRevMonth.totalRevenue)    : '—', color: 'var(--green-light)' },
     { icon: '📉', label: 'সর্বনিম্ন লাভ',    month: lowProfMonth,  value: lowProfMonth  ? (lowProfMonth.profit >= 0 ? '+' : '') + formatTaka(lowProfMonth.profit) : '—',
       color: lowProfMonth && lowProfMonth.profit < 0 ? 'var(--red)' : 'var(--amber-dark)' },
-    { icon: '💸', label: 'সর্বোচ্চ খরচ',      month: highExpMonth,  value: highExpMonth  ? formatTaka(highExpMonth.totalExpense)    : '—', color: 'var(--red)'         },
-    { icon: '💰', label: 'সর্বোচ্চ আদায়',    month: highColMonth,  value: highColMonth  ? formatTaka(highColMonth.totalCredit)     : '—', color: 'var(--green-mid)'   },
+    { icon: '💸', label: 'সর্বোচ্চ খরচের মাস',      month: highExpMonth,  value: highExpMonth  ? formatTaka(highExpMonth.totalExpense)    : '—', color: 'var(--red)'         },
+    { icon: '💰', label: 'সর্বোচ্চ পরিশোধ আদায়',    month: highColMonth,  value: highColMonth  ? formatTaka(highColMonth.totalCredit)     : '—', color: 'var(--green-mid)'   },
     { icon: '🔥', label: 'সর্বোচ্চ লেনদেন',  month: highTxnMonth,  value: highTxnMonth  ? formatNumber(highTxnMonth.transactionCount) + 'টি' : '—', color: 'var(--amber-dark)' }
   ];
 
@@ -2779,7 +2881,7 @@ async function loadReport() {
   if (prevM && (currM.transactionCount > 0 || prevM.transactionCount > 0)) {
     const trends = [
       {
-        label:  'রাজস্ব',
+        label:  'আদায়',
         curr:   currM.totalRevenue,
         prev:   prevM.totalRevenue,
         format: formatTaka
@@ -2875,7 +2977,7 @@ async function loadReport() {
   const paymentYearlyHTML = hasPayData
     ? `<div style="margin-bottom:1rem">
          <div style="font-weight:700;color:var(--green-dark);font-size:0.88rem;margin-bottom:0.6rem">
-           💳 বার্ষিক পেমেন্ট বিভাজন
+           💳 বার্ষিক আদায় বিভাজন
          </div>
          <div style="background:#fff;border-radius:var(--radius-sm);padding:0.9rem 1rem;
                      box-shadow:0 1px 5px var(--shadow)">
@@ -2914,14 +3016,14 @@ async function loadReport() {
     <div style="background:#fff;border-radius:var(--radius);padding:1.2rem;
                 box-shadow:0 2px 10px var(--shadow);margin-bottom:1rem">
       <div style="font-weight:700;color:var(--green-dark);font-size:0.9rem;margin-bottom:0.8rem">
-        📊 মাসিক রাজস্ব · খরচ · লাভ/ক্ষতি — ${year}
+        📊 মাসিক আদায় · খরচ · লাভ/ক্ষতি — ${year}
       </div>
       <div style="position:relative;height:240px">
         <canvas id="chart-yearly-grouped"></canvas>
       </div>
       <div style="display:flex;gap:1.2rem;justify-content:center;margin-top:0.6rem;flex-wrap:wrap">
         ${[
-          ['rgba(64,145,108,0.82)', 'মোট রাজস্ব'],
+          ['rgba(64,145,108,0.82)', 'মোট আদায়'],
           ['rgba(106, 176, 233, 0.9)',  'মোট খরচ'],
           ['#f8e008a2', 'নেট লাভ/ক্ষতি']
         ].map(([color, label]) => `
@@ -2970,7 +3072,7 @@ async function loadReport() {
         <tr>
           <th>${t('reportMonth')}</th>
           <th style="color:var(--amber-dark)">বাকি বিক্রি</th>
-          <th style="color:var(--green-light)">রাজস্ব</th>
+          <th style="color:var(--green-light)">আদায়</th>
           <th style="color:var(--red)">খরচ</th>
           <th>লাভ/ক্ষতি</th>
           <th>${t('reportTxnCount')}</th>
@@ -3044,7 +3146,7 @@ function drawYearlyGroupedChart(data, year) {
       labels,
       datasets: [
         {
-          label:           lang === 'bn' ? 'রাজস্ব' : 'Revenue',
+          label:           lang === 'bn' ? 'আদায়' : 'Collections',
           data:            revenue,
           backgroundColor: 'rgba(64,145,108,0.82)',
           borderColor:     '#40916c',
@@ -3156,16 +3258,22 @@ async function openMonthDetail(year, month) {
 }
 
 function renderMonthSummaryCards(s) {
-  $('month-summary-cards').innerHTML = [
-    { label: 'মোট বিক্রি',    value: formatTaka(s.cashSalesAmt + s.creditSalesAmt), color: 'var(--amber-dark)'  },
-    { label: 'মোট রাজস্ব',   value: formatTaka(s.totalRevenue),                    color: 'var(--green-light)' },
-    { label: 'নেট লাভ/ক্ষতি', value: (s.netProfit >= 0 ? '+' : '') + formatTaka(s.netProfit),
+  const cards = [
+    { label: 'মোট বিক্রি',    tipKey:'totalSales',  value: formatTaka(s.cashSalesAmt + s.creditSalesAmt), color: 'var(--amber-dark)'  },
+    { label: 'মোট আদায়',     tipKey:'totalAdai',   value: formatTaka(s.totalRevenue),                    color: 'var(--green-light)' },
+    { label: 'নেট লাভ/ক্ষতি', tipKey:'netProfit',   value: (s.netProfit >= 0 ? '+' : '') + formatTaka(s.netProfit),
       color: s.netProfit >= 0 ? 'var(--green-light)' : 'var(--red)' }
-  ].map((c, i) => `
+  ];
+
+  $('month-summary-cards').innerHTML = cards.map((c, i) => `
     <div style="padding:1rem;text-align:center;
                 ${i < 2 ? 'border-right:1px solid var(--border);' : ''}">
       <div style="font-size:1.25rem;font-weight:700;color:${c.color}">${c.value}</div>
-      <div style="font-size:0.75rem;color:var(--ink-light);margin-top:3px">${c.label}</div>
+      <div style="font-size:0.75rem;color:var(--ink-light);margin-top:4px;
+                  display:flex;align-items:center;justify-content:center;gap:0.3rem">
+        ${c.label}
+        ${tipIcon(c.tipKey, i === 2 ? 'tip-left' : '')}
+      </div>
     </div>
   `).join('');
 }
@@ -3195,7 +3303,7 @@ function switchMonthTab(tab) {
     transactions: 'লেনদেন',
     expenses:     'খরচ',
     products:     'পণ্য',
-    customers:    'খদ্দের',
+    customers:    'গ্রাহক',
     insights:     'ইনসাইট'
   };
   document.querySelectorAll('.month-tab').forEach(b => {
@@ -3223,23 +3331,28 @@ function renderMonthOverview(d) {
                rocket:'🚀 রকেট', bank:'🏦 ব্যাংক', unspecified:'❓ অনির্দিষ্ট' };
 
   // ── KPI cards row ─────────────────────────────────────
-  const kpis = [
-    { icon:'💵', label:'নগদ বিক্রি',     value: formatTaka(s.cashSalesAmt),    color:'var(--green-mid)'   },
-    { icon:'📒', label:'বাকিতে বিক্রি',  value: formatTaka(s.creditSalesAmt),  color:'var(--amber-dark)'  },
-    { icon:'✅', label:'আদায় পেলাম',     value: formatTaka(s.collectionsAmt),  color:'var(--green-light)' },
-    { icon:'🧾', label:'মোট খরচ',        value: formatTaka(s.totalExpense),    color:'var(--red)'         },
-    { icon:'⏳', label:'বর্তমান বাকি',   value: formatTaka(s.totalCurrentDue), color:'var(--amber-dark)'  },
-    { icon:'🔴', label:'মেয়াদউত্তীর্ণ', value: formatTaka(s.overdueAmt),      color:'var(--red)'         },
-    { icon:'📋', label:'লেনদেন সংখ্যা', value: formatNumber(s.txnCount),      color:'var(--green-dark)'  },
-    { icon:'👥', label:'সক্রিয় খদ্দের', value: formatNumber(s.customerCount), color:'var(--green-dark)'  }
+const kpis = [
+    { icon:'💵', label:'নগদ বিক্রি',       tipKey:'cashSales',    value: formatTaka(s.cashSalesAmt),      color:'var(--green-mid)'   },
+    { icon:'📒', label:'বাকিতে বিক্রি',    tipKey:'creditSales',  value: formatTaka(s.creditSalesAmt),    color:'var(--amber-dark)'  },
+    { icon:'✅', label:'মোট আদায়',         tipKey:'totalAdai',    value: formatTaka(s.collectionsAmt),    color:'var(--green-light)' },
+    { icon:'🧾', label:'মোট খরচ',          tipKey:'totalExpense', value: formatTaka(s.totalExpense),      color:'var(--red)'         },
+    { icon:'⏳', label:'বর্তমান বাকি',     tipKey:'currentDue',   value: formatTaka(s.totalCurrentDue),  color:'var(--amber-dark)'  },
+    { icon:'🔴', label:'মেয়াদউত্তীর্ণ',   tipKey:'overdueAmt',   value: formatTaka(s.overdueAmt),        color:'var(--red)'         },
+    { icon:'📋', label:'লেনদেন সংখ্যা',   tipKey:null,           value: formatNumber(s.txnCount),        color:'var(--green-dark)'  },
+    { icon:'👥', label:'সক্রিয় গ্রাহক',   tipKey:'totalCustomers', value: formatNumber(s.customerCount||0), color:'var(--green-dark)' }
   ];
 
   const kpiHTML = `
     <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:0.6rem;margin-bottom:1rem">
-      ${kpis.map(k => `
+      ${kpis.map((k, i) => `
         <div style="background:#fff;border-radius:var(--radius-sm);padding:0.7rem 0.8rem;
-                    border-top:3px solid ${k.color};box-shadow:0 1px 4px var(--shadow)">
-          <div style="font-size:0.72rem;color:var(--ink-light);margin-bottom:3px">${k.icon} ${k.label}</div>
+                    border-top:3px solid ${k.color};box-shadow:var(--elev-1)">
+          <div style="display:flex;align-items:center;gap:0.3rem;
+                      font-size:0.72rem;color:var(--ink-light);margin-bottom:3px">
+            ${k.icon}
+            <span>${k.label}</span>
+            ${k.tipKey ? tipIcon(k.tipKey, i >= 4 ? 'tip-left' : '') : ''}
+          </div>
           <div style="font-size:0.95rem;font-weight:700;color:${k.color}">${k.value}</div>
         </div>`).join('')}
     </div>`;
@@ -3252,7 +3365,7 @@ function renderMonthOverview(d) {
     <div style="background:${profitBg};border-radius:var(--radius-sm);padding:0.85rem 1rem;
                 margin-bottom:1rem;display:flex;justify-content:space-between;align-items:center">
       <div>
-        <div style="font-size:0.78rem;color:var(--ink-light)">রাজস্ব − খরচ</div>
+        <div style="font-size:0.78rem;color:var(--ink-light)">আদায় − খরচ</div>
         <div style="font-size:0.78rem;color:var(--ink-light)">
           ${formatTaka(s.totalRevenue)} − ${formatTaka(s.totalExpense)}
         </div>
@@ -3323,7 +3436,7 @@ function renderMonthOverview(d) {
   const chartSection = `
     <div style="margin-bottom:1rem">
       <div style="font-weight:700;color:var(--green-dark);font-size:0.88rem;margin-bottom:0.6rem">
-        📊 মাসিক রাজস্ব ও খরচ
+        📊 মাসিক আদায়  ও খরচ
       </div>
       <div style="background:#fff;border-radius:var(--radius-sm);padding:1rem;
                   box-shadow:0 1px 5px var(--shadow);margin-bottom:1rem">
@@ -3360,7 +3473,7 @@ function renderMonthOverview(d) {
         ${[
           ['বাকিতে বিক্রি',  formatTaka(s.creditSalesAmt),  'var(--amber-dark)'],
           ['নগদ বিক্রি',     formatTaka(s.cashSalesAmt),    'var(--green-mid)'],
-          ['মোট রাজস্ব',     formatTaka(s.totalRevenue),    'var(--green-light)'],
+          ['মোট আদায়',     formatTaka(s.totalRevenue),    'var(--green-light)'],
           ['মোট খরচ',        formatTaka(s.totalExpense),    'var(--red)'],
           ['বর্তমান বাকি',   formatTaka(s.totalCurrentDue), 'var(--amber-dark)'],
           ['মেয়াদউত্তীর্ণ', formatTaka(s.overdueAmt),      'var(--red)']
@@ -3572,7 +3685,7 @@ if (hasActivity) {
     html += `
       <div style="margin-bottom:1.2rem">
         <div style="font-weight:700;color:var(--green-dark);font-size:0.88rem;margin-bottom:0.6rem">
-          📊 শীর্ষ পণ্য — বিক্রয় ও রাজস্ব
+          📊 শীর্ষ পণ্য — বিক্রয় ও আদায়  
         </div>
         <div style="background:#fff;border-radius:var(--radius-sm);padding:1rem;
                     box-shadow:0 1px 5px var(--shadow);margin-bottom:1rem">
@@ -3709,7 +3822,7 @@ function renderMonthCustomers(d) {
           <div style="background:#fff;border-radius:var(--radius-sm);padding:1rem;
                       box-shadow:0 1px 5px var(--shadow)">
             <div style="font-weight:700;color:var(--amber-dark);font-size:0.82rem;margin-bottom:0.6rem">
-              💰 সর্বোচ্চ বাকি খদ্দের
+              💰 সর্বোচ্চ বাকি গ্রাহক
             </div>
             <div style="position:relative;height:180px">
               <canvas id="chart-high-due-slot"></canvas>
@@ -3773,7 +3886,7 @@ function renderMonthCustomers(d) {
     html += `
       <div style="margin-bottom:1.2rem">
         <div style="font-weight:700;color:var(--amber-dark);font-size:0.88rem;margin-bottom:0.6rem">
-          💰 সর্বোচ্চ বাকি খদ্দের
+          💰 সর্বোচ্চ বাকি গ্রাহক
         </div>
         <div style="background:var(--cream-dark);border-radius:var(--radius-sm);overflow:hidden">
           ${d.highDueCustomers.map((c, i) => `
@@ -3799,7 +3912,7 @@ function renderMonthCustomers(d) {
     html += `
       <div style="margin-bottom:1.2rem">
         <div style="font-weight:700;color:var(--red);font-size:0.88rem;margin-bottom:0.6rem">
-          🔴 মেয়াদউত্তীর্ণ বকেয়া খদ্দের
+          🔴 মেয়াদউত্তীর্ণ বকেয়া গ্রাহক
         </div>
         <div style="background:var(--cream-dark);border-radius:var(--radius-sm);overflow:hidden">
           ${d.overdueCustomers.map((c, i) => `
@@ -3840,7 +3953,7 @@ function renderMonthCustomers(d) {
       </div>`;
   }
 
-  return html || '<div class="empty-state"><div class="empty-icon">👥</div><p>কোনো খদ্দের ডেটা নেই</p></div>';
+  return html || '<div class="empty-state"><div class="empty-icon">👥</div><p>কোনো গ্রাহক ডেটা নেই</p></div>';
 }
 
 function renderMonthInsights(d) {
@@ -3925,7 +4038,7 @@ function renderMonthInsights(d) {
               `${ins.largestExpense.title} · ${CATEGORY_LABELS[ins.largestExpense.category] || ins.largestExpense.category} · ${new Date(ins.largestExpense.date).toLocaleDateString('bn-BD', { day:'numeric', month:'long' })}`,
               'border-top-color:var(--red);')
           : insightCard('💸', 'সর্ববৃহৎ খরচ', 'কোনো খরচ নেই', '', 'border-top-color:var(--red);')}
-        ${insightCard('📊', 'গড় দৈনিক রাজস্ব',
+        ${insightCard('📊', 'গড় দৈনিক আদায় ',
             formatTaka(ins.avgDailyRevenue),
             `${formatNumber(ins.activeDaysCount)} সক্রিয় দিন`)}
         ${insightCard('🗓️', 'সক্রিয় দিন',
@@ -3948,12 +4061,12 @@ function renderMonthInsights(d) {
               'border-top-color:var(--green-mid);')
           : insightCard('📦', 'সর্বোচ্চ বিক্রিত পণ্য', 'কোনো পণ্য বিক্রি হয়নি', '', 'border-top-color:var(--green-mid);')}
         ${ins.mostActiveCustomer
-          ? insightCard('👤', 'সবচেয়ে সক্রিয় খদ্দের',
+          ? insightCard('👤', 'সবচেয়ে সক্রিয় গ্রাহক',
               ins.mostActiveCustomer.name,
               `${formatNumber(ins.mostActiveCustomer.txnCount)} লেনদেন · ${formatTaka(ins.mostActiveCustomer.purchased)} কেনাকাটা`,
               'border-top-color:var(--green-mid);',
               `closeModal('modal-month-detail');openCustomerDetail('${ins.mostActiveCustomer.id}')`)
-          : insightCard('👤', 'সবচেয়ে সক্রিয় খদ্দের', 'কোনো ডেটা নেই', '', 'border-top-color:var(--green-mid);')}
+          : insightCard('👤', 'সবচেয়ে সক্রিয় গ্রাহক', 'কোনো ডেটা নেই', '', 'border-top-color:var(--green-mid);')}
       </div>
     </div>`;
 
@@ -3977,7 +4090,7 @@ function drawMonthCharts(d) {
       type: 'bar',
       data: {
         labels: [
-          lang === 'bn' ? 'মোট রাজস্ব'   : 'Total Revenue',
+          lang === 'bn' ? 'মোট আদায়'   : 'Total Collections',
           lang === 'bn' ? 'মোট খরচ'      : 'Total Expense',
           lang === 'bn' ? 'নেট লাভ/ক্ষতি' : 'Net Profit'
         ],
@@ -4038,7 +4151,7 @@ function drawMonthCharts(d) {
         labels,
         datasets: [
           {
-            label:           lang === 'bn' ? 'রাজস্ব' : 'Revenue',
+            label:           lang === 'bn' ? 'আদায়' : 'Collections',
             data:            revenue,
             borderColor:     '#40916c',
             backgroundColor: 'rgba(64,145,108,0.08)',
@@ -4313,7 +4426,7 @@ function drawProductBarChart(d) {
           yAxisID:         'yQty'
         },
         {
-          label:           lang === 'bn' ? 'রাজস্ব (৳)' : 'Revenue (৳)',
+          label:           lang === 'bn' ? 'আদায় (৳)' : 'Collection (৳)',
           data:            revData,
           backgroundColor: 'rgba(233,196,106,0.75)',
           borderColor:     '#e9c46a',
@@ -4517,30 +4630,48 @@ function drawHighDueChart(d) {
 async function loadSettings() {
   try {
     const info = await API('/api/auth/info');
-    $('setting-shop-name').value  = info.shopName || '';
-    $('setting-owner-name').value = info.ownerName || '';
-    shopsList = info.shops || [];
+
+    const shopEl  = document.getElementById('setting-shop-name');
+    const ownEl   = document.getElementById('setting-owner-name');
+
+    if (shopEl) {
+      shopEl.value    = info.shopName  || '';
+      shopEl.disabled = false;
+      shopEl.removeAttribute('readonly');
+    }
+    if (ownEl) {
+      ownEl.value    = info.ownerName || '';
+      ownEl.disabled = false;
+      ownEl.removeAttribute('readonly');
+    }
+
+    shopsList = info.shops || ['প্রধান শাখা'];
     renderShopList();
-  } catch {}
+    updateBranchCountBadge();
+  } catch (e) {
+    showToast('সেটিংস লোড করতে সমস্যা হয়েছে', 'error');
+  }
 }
 function renderShopList() {
   const el = document.getElementById('shop-list');
   if (!el) return;
+
+  updateBranchCountBadge();
+
   if (!shopsList.length) {
-    el.innerHTML = '<p style="font-size:0.82rem;color:var(--ink-light)">কোনো শাখা নেই</p>';
+    el.innerHTML = `<div class="stg-branch-empty">কোনো শাখা নেই</div>`;
     return;
   }
+
   el.innerHTML = shopsList.map((s, i) => `
-    <div style="display:flex;align-items:center;justify-content:space-between;
-                padding:0.5rem 0.75rem;margin-bottom:0.4rem;background:var(--cream-dark);
-                border:1px solid var(--border);border-radius:var(--radius-sm)">
-      <span style="font-size:0.92rem">${s}</span>
-      <button onclick="deleteShop(${i})"
-        style="background:none;border:none;cursor:pointer;font-size:1rem;
-               color:var(--red);padding:0 0.2rem;line-height:1"
-        title="মুছুন">❌</button>
-    </div>
-  `).join('');
+    <div class="stg-branch-row">
+      <span class="stg-branch-num">${formatNumber(i + 1)}</span>
+      <span class="stg-branch-name">${s}</span>
+      ${shopsList.length > 1
+        ? `<button onclick="deleteShop(${i})" class="stg-branch-del"
+                   title="${s} মুছুন">✕</button>`
+        : `<span class="stg-branch-protected" title="শেষ শাখা মুছতে পারবেন না">🔒</span>`}
+    </div>`).join('');
 }
 
 function addShop() {
@@ -4564,7 +4695,7 @@ function deleteShop(index) {
     showToast('অন্তত একটি শাখা রাখতে হবে!', 'error');
     return;
   }
-  if (!confirm(`"${name}" শাখাটি মুছবেন?\nএই শাখার সব খদ্দের ও ইনভেন্টরি "প্রধান শাখা"-তে চলে যাবে।`)) return;
+  if (!confirm(`"${name}" শাখাটি মুছবেন?\nএই শাখার সব গ্রাহক ও ইনভেন্টরি "প্রধান শাখা"-তে চলে যাবে।`)) return;
 
   shopsList.splice(index, 1);
 
@@ -4605,51 +4736,168 @@ async function persistShops() {
 }
 
 async function saveSettings() {
-  const shopName  = $('setting-shop-name').value.trim();
-  const ownerName = $('setting-owner-name').value.trim();
+  const shopEl  = document.getElementById('setting-shop-name');
+  const ownEl   = document.getElementById('setting-owner-name');
+  const shopName  = (shopEl?.value  || '').trim();
+  const ownerName = (ownEl?.value   || '').trim();
 
+  if (!shopName)  { showToast('দোকানের নাম দিন!',  'error'); shopEl?.focus(); return; }
+  if (!ownerName) { showToast('মালিকের নাম দিন!',  'error'); ownEl?.focus();  return; }
   if (!shopsList.length) { showToast('অন্তত একটি শাখা থাকতে হবে!', 'error'); return; }
 
   try {
     const updated = await API('/api/auth/setup', {
       method: 'POST',
-      body: JSON.stringify({
-        shopName,
-        ownerName,
-        shops: [...shopsList]   // always send as array
-      })
+      body:   JSON.stringify({ shopName, ownerName, shops: [...shopsList] })
     });
 
+    // Update session
     const auth = JSON.parse(sessionStorage.getItem('halkhata_auth') || '{}');
     auth.shopName  = updated.shopName;
     auth.ownerName = updated.ownerName;
     auth.shops     = updated.shops;
     sessionStorage.setItem('halkhata_auth', JSON.stringify(auth));
 
+    // Update sidebar
+    const sidebarShop = document.getElementById('sidebar-shop-name');
+    if (sidebarShop) sidebarShop.textContent = updated.shopName;
+
     shopsList = updated.shops;
-    $('sidebar-shop-name').textContent = updated.shopName;
     populateShopDropdowns();
-    showToast('সেটিংস সংরক্ষিত হয়েছে ✅');
-  } catch {
-    showToast('সংরক্ষণে সমস্যা হয়েছে', 'error');
+    updateBranchCountBadge();
+
+    // Show inline success
+    const feedback = document.getElementById('stg-shop-saved');
+    if (feedback) {
+      feedback.classList.remove('hidden');
+      setTimeout(() => feedback.classList.add('hidden'), 3000);
+    }
+
+    // Record last backup time in localStorage
+    localStorage.setItem('stg_last_settings_save', new Date().toLocaleString('bn-BD'));
+
+  } catch (e) {
+    console.error('saveSettings error:', e);
+    showToast('সংরক্ষণে সমস্যা হয়েছে — সার্ভার চেক করুন', 'error');
   }
 }
 
 async function changePin() {
-  const oldPin = $('old-pin').value;
-  const newPin = $('new-pin').value;
-  if (newPin.length !== 4) return showToast('নতুন PIN ৪ সংখ্যার হতে হবে!', 'error');
+  const oldPin     = document.getElementById('old-pin')?.value     || '';
+  const newPin     = document.getElementById('new-pin')?.value     || '';
+  const confirmPin = document.getElementById('confirm-pin')?.value || '';
+
+  if (!oldPin)              { showToast('পুরানো PIN দিন!',           'error'); return; }
+  if (newPin.length !== 4)  { showToast('নতুন PIN ৪ সংখ্যার হতে হবে!', 'error'); return; }
+  if (newPin !== confirmPin){ showToast('নতুন PIN দুটি মিলছে না!',    'error'); return; }
+
   try {
     await API('/api/auth/change-pin', {
       method: 'POST',
-      body: JSON.stringify({ oldPin, newPin })
+      body:   JSON.stringify({ oldPin, newPin })
     });
-    $('old-pin').value = '';
-    $('new-pin').value = '';
-    showToast('PIN পরিবর্তন হয়েছে ✅');
-  } catch {
-    showToast('পুরানো PIN ভুল!', 'error');
+
+    document.getElementById('old-pin').value     = '';
+    document.getElementById('new-pin').value     = '';
+    document.getElementById('confirm-pin').value = '';
+
+    const msg = document.getElementById('pin-match-msg');
+    if (msg) { msg.textContent = ''; }
+    updatePinRules('', '');
+
+    const feedback = document.getElementById('stg-pin-saved');
+    if (feedback) {
+      feedback.classList.remove('hidden');
+      setTimeout(() => feedback.classList.add('hidden'), 3000);
+    }
+  } catch (e) {
+    showToast('পুরানো PIN ভুল হয়েছে!', 'error');
   }
+}
+
+// ─── PIN helpers ──────────────────────────────────────
+function togglePinVisibility(inputId, btn) {
+  const inp = document.getElementById(inputId);
+  if (!inp) return;
+  if (inp.type === 'password') {
+    inp.type = 'text';
+    btn.textContent = '🙈';
+  } else {
+    inp.type = 'password';
+    btn.textContent = '👁';
+  }
+}
+
+function validatePinMatch() {
+  const newPin     = document.getElementById('new-pin')?.value     || '';
+  const confirmPin = document.getElementById('confirm-pin')?.value || '';
+  updatePinRules(newPin, confirmPin);
+}
+
+function updatePinRules(newPin, confirmPin) {
+  const lenRule   = document.getElementById('pin-rule-len');
+  const matchRule = document.getElementById('pin-rule-match');
+  const matchMsg  = document.getElementById('pin-match-msg');
+  if (!lenRule || !matchRule) return;
+
+  const lenOk   = newPin.length === 4;
+  const matchOk = newPin.length > 0 && newPin === confirmPin;
+
+  lenRule.textContent  = lenOk   ? '✅ ঠিক ৪ সংখ্যা'     : '○ ঠিক ৪ সংখ্যা';
+  lenRule.className    = `stg-pin-rule ${lenOk   ? 'stg-rule-ok' : ''}`;
+
+  matchRule.textContent = matchOk ? '✅ PIN দুটি মিলছে'   : '○ PIN দুটি মিলছে';
+  matchRule.className   = `stg-pin-rule ${matchOk ? 'stg-rule-ok' : ''}`;
+
+  if (matchMsg) {
+    if (confirmPin.length > 0 && !matchOk) {
+      matchMsg.textContent = 'PIN মিলছে না';
+      matchMsg.className   = 'stg-pin-match-msg stg-pin-no-match';
+    } else if (matchOk) {
+      matchMsg.textContent = '✅ PIN মিলছে';
+      matchMsg.className   = 'stg-pin-match-msg stg-pin-ok';
+    } else {
+      matchMsg.textContent = '';
+      matchMsg.className   = 'stg-pin-match-msg';
+    }
+  }
+}
+
+// ─── Branch count badge ───────────────────────────────
+function updateBranchCountBadge() {
+  const badge = document.getElementById('stg-branch-count');
+  if (badge) badge.textContent = `${formatNumber(shopsList.length)} টি শাখা`;
+}
+
+// ─── Restore from JSON file ───────────────────────────
+function openRestoreDialog() {
+  if (!confirm('JSON ব্যাকআপ ফাইল থেকে ডেটা পুনরুদ্ধার করবেন?\nবর্তমান ডেটা প্রতিস্থাপিত হবে।')) return;
+  document.getElementById('stg-restore-file')?.click();
+}
+
+async function handleRestoreFile(event) {
+  const file = event.target.files?.[0];
+  if (!file) return;
+  try {
+    const text    = await file.text();
+    const backup  = JSON.parse(text);
+    if (!backup.customers && !backup.transactions) {
+      showToast('ভুল ফাইল ফরম্যাট!', 'error');
+      return;
+    }
+    await API('/api/restore', {
+      method: 'POST',
+      body:   JSON.stringify({
+        customers:    backup.customers    || [],
+        transactions: backup.transactions || []
+      })
+    });
+    showToast('ডেটা পুনরুদ্ধার হয়েছে ✅ — পেজ রিলোড হচ্ছে...');
+    setTimeout(() => location.reload(), 1500);
+  } catch {
+    showToast('পুনরুদ্ধার ব্যর্থ হয়েছে', 'error');
+  }
+  event.target.value = '';
 }
 
 async function exportBackup() {
@@ -4767,7 +5015,7 @@ function printStatement() {
       .total { font-weight: 700; font-size: 1.2rem; color: #e63946; margin-top: 1rem; }
     </style></head><body>
     <div class="header">
-      <div><h1>হালখাতা ডিজিটাল</h1><p>খদ্দের স্টেটমেন্ট</p></div>
+      <div><h1>হালখাতা ডিজিটাল</h1><p>গ্রাহক স্টেটমেন্ট</p></div>
       <div style="text-align:right"><p><strong>${currentCustomer.name}</strong></p>
         <p>${currentCustomer.phone || ''}</p><p>${new Date().toLocaleDateString('bn-BD')}</p></div>
     </div>
@@ -5257,43 +5505,57 @@ function buildCustomerSS(customers, isOffline) {
 
 function buildProductSS(items, isOffline) {
   ssProduct = setupSearchableSelect({
-    inputId:       't-product-search',
-    hiddenId:      't-product',
-    resultsId:     't-product-results',
-    clearId:       't-product-clear',
-    items:         items.filter(i => i.quantity >= 0),
+    inputId: 't-product-search', hiddenId: 't-product', resultsId: 't-product-results', clearId: 't-product-clear',
+    items: items.filter(i => i.totalStock >= 0),
     isOffline,
-    searchFields:  i => [i.name],
+    searchFields: i => [i.name],
     labelRenderer: i => {
-      const stockCls = i.quantity === 0 ? 'zero' : i.quantity < 10 ? 'low' : '';
-      return {
-        main:     i.name,
-        sub:      `৳${i.sellPrice} · ক্রয়: ৳${i.buyPrice}`,
-        badge:    `স্টক: ${i.quantity}`,
-        badgeCls: stockCls
-      };
+      const cls = i.totalStock===0?'zero':i.totalStock<10?'low':'';
+      return { main: i.name, sub: `৳${i.sellPrice} · গড় ক্রয়: ৳${i.avgBuyPrice}`, badge: `স্টক: ${i.totalStock}`, badgeCls: cls };
     },
     onSelect: item => {
       const hid = document.getElementById('t-product');
       if (!item) {
         $('quantity-section').classList.add('hidden');
-        $('t-quantity').value        = '';
-        $('t-amount').value          = '';
-        $('stock-error').textContent = '';
+        $('batch-choice-group').style.display = 'none';
+        $('t-quantity').value=''; $('t-amount').value=''; $('stock-error').textContent='';
         return;
       }
-      // Ensure both naming conventions are set for downstream compatibility
       if (hid) {
-        hid.dataset.sell      = item.sellPrice;
-        hid.dataset.sellPrice = item.sellPrice;
-        hid.dataset.stock     = item.quantity;
-        hid.dataset.quantity  = item.quantity;
-        hid.dataset.name      = item.name;
-        hid.dataset.buyPrice  = item.buyPrice;
+        hid.dataset.sell = item.sellPrice; hid.dataset.sellPrice = item.sellPrice;
+        hid.dataset.stock = item.totalStock; hid.dataset.quantity = item.totalStock;
+        hid.dataset.name = item.name; hid.dataset.buyPrice = item.avgBuyPrice;
       }
+      $('batch-choice-group').style.display = item.batchCount > 1 ? 'block' : 'none';
       onProductChange();
     }
   });
+}
+
+async function toggleBatchChoice() {
+  const checked    = $('t-choose-batch').checked;
+  const listEl     = $('t-batch-list');
+  const productId  = $('t-product')?.value;
+  if (!checked || !productId) { listEl.classList.add('hidden'); return; }
+
+  const product = await API(`/api/products/${productId}`);
+  const active  = product.batches.filter(b => b.remainingQuantity > 0);
+
+  listEl.innerHTML = active.map(b => `
+    <label style="display:flex;align-items:center;gap:0.5rem;padding:0.5rem 0.7rem;
+                  background:var(--cream-dark);border-radius:var(--radius-sm);margin-bottom:0.3rem;cursor:pointer">
+      <input type="radio" name="t-batch-radio" value="${b.id}"
+             onchange="selectBatch('${b.id}', ${b.remainingQuantity}, ${b.buyPrice})" />
+      <span>অবশিষ্ট: ${formatNumber(b.remainingQuantity)} · ক্রয়: ৳${b.buyPrice}
+        ${b.expiryDate ? `· মেয়াদ: ${formatDateShort(b.expiryDate)}` : ''}</span>
+    </label>`).join('');
+  listEl.classList.remove('hidden');
+}
+
+let selectedBatchId = null;
+function selectBatch(batchId, remaining, buyPrice) {
+  selectedBatchId = batchId;
+  $('t-stock-info').textContent = `নির্বাচিত ব্যাচে স্টক: ${formatNumber(remaining)}`;
 }
 
 // ─── Service Worker ───────────────────────────────────
@@ -5325,16 +5587,15 @@ function updateLangButton(lang) {
 // ═══════════════════════════════════════════════════════
 let inventoryData = [];
 
-function getItemStatus(item) {
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  if (item.expiryDate && new Date(item.expiryDate) < today) return 'expired';
-  if (item.quantity < 10) return 'low';
+function getItemStatus(p) {
+  const today = new Date(); today.setHours(0,0,0,0);
+  if (p.nearestExpiry && new Date(p.nearestExpiry) < today) return 'expired';
+  if (p.totalStock < 10) return 'low';
   return 'ok';
 }
 
 async function loadInventory() {
-  const url = `/api/inventory${currentShop ? `?shop=${encodeURIComponent(currentShop)}` : ''}`;
+  const url = `/api/products${currentShop ? `?shop=${encodeURIComponent(currentShop)}` : ''}`;
   [inventoryData, suppliersData] = await Promise.all([
     API(url),
     API('/api/suppliers')
@@ -5342,45 +5603,45 @@ async function loadInventory() {
   renderInventory();
 }
 
+let expandedProducts = new Set();
+
+function toggleProductExpand(productId) {
+  if (expandedProducts.has(productId)) expandedProducts.delete(productId);
+  else expandedProducts.add(productId);
+  renderInventory();
+} 
+
 function renderInventory() {
-  const search    = (document.getElementById('inv-search')?.value || '').toLowerCase();
-  const filter    = document.getElementById('inv-filter')?.value || 'all';
+  const search = (document.getElementById('inv-search')?.value || '').toLowerCase();
+  const filter = document.getElementById('inv-filter')?.value || 'all';
 
   let items = [...inventoryData];
   if (search) items = items.filter(i => i.name.toLowerCase().includes(search));
   if (filter === 'low')     items = items.filter(i => getItemStatus(i) === 'low');
   if (filter === 'expired') items = items.filter(i => getItemStatus(i) === 'expired');
 
-  // Summary bar
   const totalItems   = inventoryData.length;
   const lowCount     = inventoryData.filter(i => getItemStatus(i) === 'low').length;
   const expiredCount = inventoryData.filter(i => getItemStatus(i) === 'expired').length;
-  const totalValue   = inventoryData.reduce((s, i) => s + (i.buyPrice * i.quantity), 0);
+  const totalValue   = inventoryData.reduce((s, i) => s + i.totalValue, 0);
 
   document.getElementById('inv-summary').innerHTML = `
-    <div style="background:#fff;border-radius:var(--radius);padding:0.9rem 1.2rem;
-                box-shadow:0 2px 8px var(--shadow);display:flex;align-items:center;gap:0.75rem;flex:1;min-width:140px">
+    <div style="background:#fff;border-radius:var(--radius);padding:0.9rem 1.2rem;box-shadow:var(--elev-1);display:flex;align-items:center;gap:0.75rem;flex:1;min-width:140px">
       <span style="font-size:1.5rem">📦</span>
       <div><div style="font-size:0.78rem;color:var(--ink-light)">মোট পণ্য</div>
            <div style="font-size:1.2rem;font-weight:700">${formatNumber(totalItems)}</div></div>
     </div>
-    <div style="background:#fff;border-radius:var(--radius);padding:0.9rem 1.2rem;
-                box-shadow:0 2px 8px var(--shadow);display:flex;align-items:center;gap:0.75rem;flex:1;min-width:140px;
-                border-left:4px solid var(--amber-dark)">
+    <div style="background:#fff;border-radius:var(--radius);padding:0.9rem 1.2rem;box-shadow:var(--elev-1);display:flex;align-items:center;gap:0.75rem;flex:1;min-width:140px;border-left:4px solid var(--amber-dark)">
       <span style="font-size:1.5rem">⚠️</span>
       <div><div style="font-size:0.78rem;color:var(--ink-light)">কম স্টক</div>
            <div style="font-size:1.2rem;font-weight:700;color:var(--amber-dark)">${formatNumber(lowCount)}</div></div>
     </div>
-    <div style="background:#fff;border-radius:var(--radius);padding:0.9rem 1.2rem;
-                box-shadow:0 2px 8px var(--shadow);display:flex;align-items:center;gap:0.75rem;flex:1;min-width:140px;
-                border-left:4px solid var(--red)">
+    <div style="background:#fff;border-radius:var(--radius);padding:0.9rem 1.2rem;box-shadow:var(--elev-1);display:flex;align-items:center;gap:0.75rem;flex:1;min-width:140px;border-left:4px solid var(--red)">
       <span style="font-size:1.5rem">🚫</span>
       <div><div style="font-size:0.78rem;color:var(--ink-light)">মেয়াদ উত্তীর্ণ</div>
            <div style="font-size:1.2rem;font-weight:700;color:var(--red)">${formatNumber(expiredCount)}</div></div>
     </div>
-    <div style="background:#fff;border-radius:var(--radius);padding:0.9rem 1.2rem;
-                box-shadow:0 2px 8px var(--shadow);display:flex;align-items:center;gap:0.75rem;flex:1;min-width:140px;
-                border-left:4px solid var(--green-light)">
+    <div style="background:#fff;border-radius:var(--radius);padding:0.9rem 1.2rem;box-shadow:var(--elev-1);display:flex;align-items:center;gap:0.75rem;flex:1;min-width:140px;border-left:4px solid var(--green-light)">
       <span style="font-size:1.5rem">💰</span>
       <div><div style="font-size:0.78rem;color:var(--ink-light)">মোট মূল্য</div>
            <div style="font-size:1.2rem;font-weight:700;color:var(--green-dark)">${formatTaka(totalValue)}</div></div>
@@ -5393,57 +5654,77 @@ function renderInventory() {
     return;
   }
 
-  el.innerHTML = `
-    <div style="background:#fff;border-radius:var(--radius);overflow:hidden;box-shadow:0 2px 10px var(--shadow)">
-      <table style="width:100%;border-collapse:collapse">
+  el.innerHTML = items.map(p => {
+    const status      = getItemStatus(p);
+    const isExpanded   = expandedProducts.has(p.id);
+    const statusBadge  = status === 'expired'
+      ? `<span class="due-tag due-tag--overdue">🚫 মেয়াদ শেষ</span>`
+      : status === 'low'
+        ? `<span class="due-tag due-tag--due-soon">⚠️ কম স্টক</span>`
+        : `<span class="due-tag" style="background:var(--green-pale);color:var(--green-dark)">✅ ঠিক আছে</span>`;
+    const margin = p.sellPrice - p.avgBuyPrice;
+
+    return `
+    <div class="inv-product-card">
+      <div class="inv-product-main" onclick="toggleProductExpand('${p.id}')">
+        <div class="inv-expand-icon">${isExpanded ? '▼' : '▶'}</div>
+        <div class="inv-product-info">
+          <div class="inv-product-name">${p.name}</div>
+          <div class="inv-product-meta">${p.shop || ''} · ${formatNumber(p.batchCount)} ব্যাচ</div>
+        </div>
+        <div class="inv-product-stat">
+          <div class="inv-stat-label">মোট স্টক</div>
+          <div class="inv-stat-val" style="color:${p.totalStock<10?'var(--amber-dark)':'var(--ink)'}">${formatNumber(p.totalStock)}</div>
+        </div>
+        <div class="inv-product-stat">
+          <div class="inv-stat-label">গড় ক্রয় মূল্য</div>
+          <div class="inv-stat-val">${formatTaka(p.avgBuyPrice)}</div>
+        </div>
+        <div class="inv-product-stat">
+          <div class="inv-stat-label">বিক্রয় মূল্য</div>
+          <div class="inv-stat-val">${formatTaka(p.sellPrice)}
+            ${margin>0?`<span style="font-size:0.7rem;color:var(--green-light)">+${formatTaka(margin)}</span>`:''}
+          </div>
+        </div>
+        <div class="inv-product-stat">
+          <div class="inv-stat-label">মেয়াদ</div>
+          <div class="inv-stat-val" style="font-size:0.82rem">${p.nearestExpiry?formatDateShort(p.nearestExpiry):'—'}</div>
+        </div>
+        <div class="inv-product-stat">${statusBadge}</div>
+        <div class="inv-product-actions" onclick="event.stopPropagation()">
+          <button onclick="openRestockProduct('${p.id}')" title="স্টক যোগ করুন">➕</button>
+          <button onclick="openEditProduct('${p.id}')" title="সম্পাদনা">✏️</button>
+          <button onclick="deleteProduct('${p.id}')" title="মুছুন">🗑️</button>
+        </div>
+      </div>
+      ${isExpanded ? renderBatchTable(p) : ''}
+    </div>`;
+  }).join('');
+}
+
+function renderBatchTable(p) {
+  if (!p.batches.length) return `<div class="inv-batch-empty">কোনো ব্যাচ নেই</div>`;
+  return `
+    <div class="inv-batch-wrap">
+      <table class="inv-batch-table">
         <thead>
-          <tr style="background:var(--cream-dark)">
-            <th style="padding:0.75rem 1rem;text-align:left;font-size:0.85rem;color:var(--green-dark)">পণ্যের নাম</th>
-            <th style="padding:0.75rem 1rem;text-align:right;font-size:0.85rem;color:var(--green-dark)">ক্রয়</th>
-            <th style="padding:0.75rem 1rem;text-align:right;font-size:0.85rem;color:var(--green-dark)">বিক্রয়</th>
-            <th style="padding:0.75rem 1rem;text-align:right;font-size:0.85rem;color:var(--green-dark)">স্টক</th>
-            <th style="padding:0.75rem 1rem;text-align:center;font-size:0.85rem;color:var(--green-dark)">মেয়াদ</th>
-            <th style="padding:0.75rem 1rem;text-align:center;font-size:0.85rem;color:var(--green-dark)">অবস্থা</th>
-            <th style="padding:0.75rem 1rem;text-align:center;font-size:0.85rem;color:var(--green-dark)">কাজ</th>
+          <tr>
+            <th>ব্যাচ</th><th>পরিমাণ</th><th>অবশিষ্ট</th><th>ক্রয় মূল্য</th>
+            <th>ক্রয় তারিখ</th><th>মেয়াদ</th><th></th>
           </tr>
         </thead>
         <tbody>
-          ${items.map(item => {
-            const status = getItemStatus(item);
-            const rowBg  = status === 'expired' ? '#fff8f8' : status === 'low' ? '#fffdf0' : '#fff';
-            const statusHTML = status === 'expired'
-              ? `<span class="due-tag due-tag--overdue">🚫 মেয়াদ শেষ</span>`
-              : status === 'low'
-                ? `<span class="due-tag due-tag--due-soon">⚠️ কম স্টক</span>`
-                : `<span class="due-tag" style="background:var(--green-pale);color:var(--green-dark)">✅ ঠিক আছে</span>`;
-            const profit = item.sellPrice - item.buyPrice;
+          ${p.batches.map((b, i) => {
+            const expired = b.expiryDate && new Date(b.expiryDate) < new Date();
             return `
-            <tr style="border-top:1px solid var(--border);background:${rowBg}">
-              <td style="padding:0.75rem 1rem">
-                <div style="font-weight:600;color:var(--ink)">${item.name}</div>
-                <div style="font-size:0.75rem;color:var(--ink-light)">${item.shop || ''}</div>
-              </td>
-              <td style="padding:0.75rem 1rem;text-align:right;font-size:0.9rem">${formatTaka(item.buyPrice)}</td>
-              <td style="padding:0.75rem 1rem;text-align:right;font-size:0.9rem">
-                ${formatTaka(item.sellPrice)}
-                ${profit > 0 ? `<div style="font-size:0.7rem;color:var(--green-light)">+${formatTaka(profit)}</div>` : ''}
-              </td>
-              <td style="padding:0.75rem 1rem;text-align:right;font-weight:700;
-                         color:${item.quantity < 10 ? 'var(--amber-dark)' : 'var(--ink)'}">
-                ${formatNumber(item.quantity)}
-              </td>
-              <td style="padding:0.75rem 1rem;text-align:center;font-size:0.82rem;color:var(--ink-light)">
-                ${item.expiryDate ? formatDateShort(item.expiryDate) : '—'}
-              </td>
-              <td style="padding:0.75rem 1rem;text-align:center">${statusHTML}</td>
-              <td style="padding:0.75rem 1rem;text-align:center;display:flex;gap:0.4rem;justify-content:center">
-                <button onclick="openEditInventory('${item.id}')"
-                  style="background:none;border:1px solid var(--border);border-radius:4px;
-                         padding:3px 8px;cursor:pointer;font-size:0.8rem">✏️</button>
-                <button onclick="deleteInventoryItem('${item.id}')"
-                  style="background:none;border:1px solid var(--red);border-radius:4px;
-                         padding:3px 8px;cursor:pointer;font-size:0.8rem;color:var(--red)">🗑️</button>
-              </td>
+            <tr style="${b.remainingQuantity===0?'opacity:0.45':''}">
+              <td>ব্যাচ ${i+1}</td>
+              <td>${formatNumber(b.quantity)}</td>
+              <td style="font-weight:700;color:${b.remainingQuantity<5&&b.remainingQuantity>0?'var(--amber-dark)':'inherit'}">${formatNumber(b.remainingQuantity)}</td>
+              <td>${formatTaka(b.buyPrice)}</td>
+              <td>${b.buyDate?formatDateShort(b.buyDate):'—'}</td>
+              <td style="color:${expired?'var(--red)':'inherit'}">${b.expiryDate?formatDateShort(b.expiryDate):'—'}</td>
+              <td><button onclick="deleteBatch('${b.id}','${p.id}')" style="background:none;border:none;color:var(--red);cursor:pointer;font-size:0.78rem">🗑️</button></td>
             </tr>`;
           }).join('')}
         </tbody>
@@ -5451,15 +5732,18 @@ function renderInventory() {
     </div>`;
 }
 
-function openAddInventory() {
-  $('inv-modal-title').textContent = 'নতুন পণ্য যোগ করুন';
-  $('inv-id').value          = '';
-  $('inv-name').value        = '';
-  $('inv-buy-price').value   = '';
-  $('inv-sell-price').value  = '';
-  $('inv-quantity').value    = '';
-  $('inv-buy-date').value    = '';
-  $('inv-expiry-date').value = '';
+async function openAddInventory() {
+  $('inv-modal-title').textContent = 'নতুন পণ্য / স্টক যোগ করুন';
+  $('inv-product-id').value      = '';
+  $('inv-name-search').value     = '';
+  $('inv-name-hidden').value     = '';
+  $('inv-sell-price').value      = '';
+  $('inv-quantity').value        = '';
+  $('inv-buy-price').value       = '';
+  $('inv-buy-date').value        = '';
+  $('inv-expiry-date').value     = '';
+  $('inv-existing-note').classList.add('hidden');
+  $('inv-sellprice-group').style.display = '';
 
   const shopSel = $('inv-shop');
   shopSel.innerHTML = '';
@@ -5467,92 +5751,129 @@ function openAddInventory() {
   const saved = localStorage.getItem('selectedShop');
   if (saved) shopSel.value = saved;
 
-  // Populate supplier dropdown
-  const supSel = document.getElementById('inv-supplier');
-  if (supSel) {
-    supSel.innerHTML = '<option value="">সরবরাহকারী বাছুন...</option>';
-    suppliersData.forEach(s => {
-      supSel.innerHTML += `<option value="${s.id}">${s.name}</option>`;
-    });
-  }
+  const supSel = $('inv-supplier');
+  supSel.innerHTML = '<option value="">সরবরাহকারী বাছুন...</option>';
+  suppliersData.forEach(s => supSel.innerHTML += `<option value="${s.id}">${s.name}</option>`);
+
+  setupSearchableSelect({
+    inputId: 'inv-name-search', hiddenId: 'inv-name-hidden', resultsId: 'inv-name-results',
+    items: inventoryData,
+    searchFields: i => [i.name],
+    labelRenderer: i => ({ main: i.name, sub: `স্টক: ${i.totalStock} · ৳${i.sellPrice}` }),
+    onSelect: item => {
+      if (item) {
+        $('inv-product-id').value = item.id;
+        $('inv-sell-price').value = item.sellPrice;
+        $('inv-existing-note').classList.remove('hidden');
+        $('inv-sellprice-group').style.display = 'none';
+      } else {
+        $('inv-product-id').value = '';
+        $('inv-existing-note').classList.add('hidden');
+        $('inv-sellprice-group').style.display = '';
+      }
+    }
+  });
 
   openModal('modal-inventory');
 }
 
-function openEditInventory(id) {
-  const item = inventoryData.find(i => i.id === id);
-  if (!item) return;
-  $('inv-modal-title').textContent = 'পণ্য সম্পাদনা করুন';
-  $('inv-id').value          = item.id;
-  $('inv-name').value        = item.name;
-  $('inv-buy-price').value   = item.buyPrice;
-  $('inv-sell-price').value  = item.sellPrice;
-  $('inv-quantity').value    = item.quantity;
-  $('inv-buy-date').value    = item.buyDate    ? item.buyDate.split('T')[0]    : '';
-  $('inv-expiry-date').value = item.expiryDate ? item.expiryDate.split('T')[0] : '';
-
-  const shopSel = $('inv-shop');
-  shopSel.innerHTML = '';
-  shopsList.forEach(s => shopSel.innerHTML += `<option value="${s}">${s}</option>`);
-  shopSel.value = item.shop || '';
-
-  openModal('modal-inventory');
+function openRestockProduct(productId) {
+  openAddInventory().then(() => {
+    const p = inventoryData.find(x => x.id === productId);
+    if (p) {
+      $('inv-product-id').value  = p.id;
+      $('inv-name-search').value = p.name;
+      $('inv-existing-note').classList.remove('hidden');
+      $('inv-sellprice-group').style.display = 'none';
+      $('inv-modal-title').textContent = `${p.name} — নতুন স্টক যোগ করুন`;
+    }
+  });
 }
 
 async function saveInventoryItem() {
-  const name = $('inv-name').value.trim();
-  if (!name) return showToast('পণ্যের নাম দিন!', 'error');
+  const productId = $('inv-product-id').value;
+  const name       = $('inv-name-search').value.trim();
+  const quantity   = $('inv-quantity').value;
+  const buyPrice   = $('inv-buy-price').value;
 
-  const body = {
-    name,
-    buyPrice:   $('inv-buy-price').value,
-    sellPrice:  $('inv-sell-price').value,
-    quantity:   $('inv-quantity').value,
-    buyDate:    $('inv-buy-date').value    || null,
-    expiryDate: $('inv-expiry-date').value || null,
-    shop:       $('inv-shop').value || localStorage.getItem('selectedShop') || 'প্রধান শাখা',
-    supplierId: $('inv-supplier')?.value   || null
-  };
+  if (!name)                     return showToast('পণ্যের নাম দিন!', 'error');
+  if (!quantity || quantity<=0)  return showToast('পরিমাণ দিন!', 'error');
+  if (!buyPrice || buyPrice<=0)  return showToast('ক্রয় মূল্য দিন!', 'error');
+
+  const shop = $('inv-shop').value || localStorage.getItem('selectedShop') || 'প্রধান শাখা';
 
   try {
-    const id = $('inv-id').value;
-    if (id) {
-      await API(`/api/inventory/${id}`, { method: 'PUT', body: JSON.stringify(body) });
-      showToast('পণ্য আপডেট হয়েছে ✅');
+    if (productId) {
+      // Existing product → add batch
+      await API(`/api/products/${productId}/batches`, {
+        method: 'POST',
+        body: JSON.stringify({
+          quantity, buyPrice,
+          buyDate: $('inv-buy-date').value || null,
+          expiryDate: $('inv-expiry-date').value || null,
+          supplierId: $('inv-supplier').value || null,
+          autoExpense: $('inv-auto-expense').checked
+        })
+      });
+      showToast('নতুন ব্যাচ যোগ হয়েছে ✅');
     } else {
-      const saved = await API('/api/inventory', { method: 'POST', body: JSON.stringify(body) });
-
-      // Auto-create expense entry if checkbox is checked
-      if (document.getElementById('inv-auto-expense')?.checked) {
-        const expAmt = (parseFloat(body.buyPrice) || 0) * (parseInt(body.quantity) || 0);
-        if (expAmt > 0) {
-          await API('/api/expenses', {
-            method: 'POST',
-            body: JSON.stringify({
-              title:    `পণ্য ক্রয়: ${body.name}`,
-              category: 'Supplier Purchase',
-              amount:   expAmt,
-              shop:     body.shop,
-              note:     `${body.quantity} × ৳${body.buyPrice}`,
-              date:     body.buyDate || new Date().toISOString().split('T')[0]
-            })
-          });
-        }
-      }
+      const sellPrice = $('inv-sell-price').value;
+      if (!sellPrice) return showToast('বিক্রয় মূল্য দিন!', 'error');
+      await API('/api/products', {
+        method: 'POST',
+        body: JSON.stringify({
+          name, sellPrice, shop, quantity, buyPrice,
+          buyDate: $('inv-buy-date').value || null,
+          expiryDate: $('inv-expiry-date').value || null,
+          supplierId: $('inv-supplier').value || null,
+          autoExpense: $('inv-auto-expense').checked
+        })
+      });
       showToast('নতুন পণ্য যোগ হয়েছে ✅');
     }
     closeModal('modal-inventory');
     loadInventory();
-  } catch {
-    showToast('সংরক্ষণ করতে সমস্যা হয়েছে', 'error');
+  } catch (e) {
+    showToast(e.message || 'সংরক্ষণে সমস্যা হয়েছে', 'error');
   }
 }
 
-async function deleteInventoryItem(id) {
-  const item = inventoryData.find(i => i.id === id);
-  if (!confirm(`"${item?.name}" মুছবেন?`)) return;
-  await API(`/api/inventory/${id}`, { method: 'DELETE' });
+function openEditProduct(productId) {
+  const p = inventoryData.find(x => x.id === productId);
+  if (!p) return;
+  $('ep-product-id').value = p.id;
+  $('ep-name').value       = p.name;
+  $('ep-sell-price').value = p.sellPrice;
+  const shopSel = $('ep-shop');
+  shopSel.innerHTML = '';
+  shopsList.forEach(s => shopSel.innerHTML += `<option value="${s}">${s}</option>`);
+  shopSel.value = p.shop;
+  openModal('modal-edit-product');
+}
+
+async function saveEditProduct() {
+  const id = $('ep-product-id').value;
+  await API(`/api/products/${id}`, {
+    method: 'PUT',
+    body: JSON.stringify({ name: $('ep-name').value.trim(), sellPrice: $('ep-sell-price').value, shop: $('ep-shop').value })
+  });
+  showToast('পণ্য আপডেট হয়েছে ✅');
+  closeModal('modal-edit-product');
+  loadInventory();
+}
+
+async function deleteProduct(productId) {
+  const p = inventoryData.find(x => x.id === productId);
+  if (!confirm(`"${p?.name}" এবং এর সব ব্যাচ মুছবেন?`)) return;
+  await API(`/api/products/${productId}`, { method: 'DELETE' });
   showToast('পণ্য মুছে গেছে');
+  loadInventory();
+}
+
+async function deleteBatch(batchId, productId) {
+  if (!confirm('এই ব্যাচ মুছবেন?')) return;
+  await API(`/api/batches/${batchId}`, { method: 'DELETE' });
+  showToast('ব্যাচ মুছে গেছে');
   loadInventory();
 }
 
@@ -5596,31 +5917,72 @@ async function loadSupplierDetail(id) {
     const s  = await API(`/api/suppliers/${id}`);
     currentSupplier = s;
 
-    document.getElementById('supplier-detail-top').innerHTML = `
-      <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:1rem">
+document.getElementById('supplier-detail-top').innerHTML = `
+      <!-- Supplier identity row -->
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;
+                  margin-bottom:1.2rem;flex-wrap:wrap;gap:0.75rem">
         <div>
-          <div style="font-family:'Tiro Bangla',serif;font-size:1.3rem;color:var(--green-dark);font-weight:700">${s.name}</div>
-          <div style="color:var(--ink-light);margin-top:4px">📞 ${s.phone || '—'}</div>
-        </div>
-        <div style="display:flex;gap:1.5rem">
-          <div style="text-align:center">
-            <div style="font-size:0.75rem;color:var(--ink-light)">মোট ধার</div>
-            <div style="font-size:1.2rem;font-weight:700;color:var(--amber-dark)">${formatTaka(s.totalOwed)}</div>
+          <div style="font-family:'Tiro Bangla',serif;font-size:1.35rem;
+                      color:var(--green-dark);font-weight:700;letter-spacing:-0.01em">
+            ${s.name}
           </div>
-          <div style="text-align:center">
-            <div style="font-size:0.75rem;color:var(--ink-light)">মোট দিয়েছি</div>
-            <div style="font-size:1.2rem;font-weight:700;color:var(--green-light)">${formatTaka(s.totalPaid)}</div>
-          </div>
-          <div style="text-align:center">
-            <div style="font-size:0.75rem;color:var(--ink-light)">বাকি</div>
-            <div style="font-size:1.2rem;font-weight:700;color:var(--red)">${formatTaka(s.balance)}</div>
+          <div style="font-size:0.82rem;color:var(--ink-light);margin-top:4px;
+                      display:flex;align-items:center;gap:0.5rem">
+            ${s.phone ? `<span>📞 ${s.phone}</span>` : ''}
+            <span style="font-size:0.7rem;color:var(--border)">|</span>
+            <span>🏭 সরবরাহকারী</span>
           </div>
         </div>
-        <div style="display:flex;gap:0.5rem">
-          <button class="btn-outline danger" onclick="deleteSupplier('${s.id}')">🗑️ মুছুন</button>
-        </div>
+        <button class="btn-outline danger" onclick="deleteSupplier('${s.id}')"
+                style="font-size:0.82rem;padding:0.42rem 0.85rem">
+          🗑️ মুছুন
+        </button>
       </div>
-    `;
+
+      <!-- KPI cards row -->
+      <div class="sup-kpi-row">
+
+        <!-- Card 1: Total borrowed -->
+        <div class="sup-kpi-card" style="border-top-color:#f4a261">
+          <div class="sup-kpi-top">
+            <div class="sup-kpi-icon" style="background:rgba(244,162,97,0.12);color:#e07c3a">⬇️</div>
+            <span class="sup-kpi-label">মোট ধার নিয়েছি</span>
+          </div>
+          <div class="sup-kpi-value" style="color:#c96a1a">${formatTaka(s.totalOwed)}</div>
+          <div class="sup-kpi-sub">এ পর্যন্ত সরবরাহকারীর কাছ থেকে</div>
+        </div>
+
+        <!-- Card 2: Total repaid -->
+        <div class="sup-kpi-card" style="border-top-color:var(--green-light)">
+          <div class="sup-kpi-top">
+            <div class="sup-kpi-icon" style="background:rgba(64,145,108,0.11);color:var(--green-mid)">⬆️</div>
+            <span class="sup-kpi-label">মোট পরিশোধ করেছি</span>
+          </div>
+          <div class="sup-kpi-value" style="color:var(--green-mid)">${formatTaka(s.totalPaid)}</div>
+          <div class="sup-kpi-sub">এ পর্যন্ত আমি পরিশোধ করেছি</div>
+        </div>
+
+        <!-- Card 3: Current balance -->
+        <div class="sup-kpi-card"
+             style="border-top-color:${s.balance > 0 ? 'var(--red)' : 'var(--green-light)'}">
+          <div class="sup-kpi-top">
+            <div class="sup-kpi-icon"
+                 style="background:${s.balance > 0 ? 'rgba(230,57,70,0.10)' : 'rgba(64,145,108,0.10)'};
+                        color:${s.balance > 0 ? 'var(--red)' : 'var(--green-mid)'}">
+              ${s.balance > 0 ? '🔴' : '✅'}
+            </div>
+            <span class="sup-kpi-label">বর্তমান বাকি</span>
+          </div>
+          <div class="sup-kpi-value"
+               style="color:${s.balance > 0 ? 'var(--red)' : 'var(--green-mid)'}">
+            ${formatTaka(s.balance)}
+          </div>
+          <div class="sup-kpi-sub">
+            ${s.balance > 0 ? 'এখনো পরিশোধ বাকি আছে' : 'সম্পূর্ণ পরিশোধিত'}
+          </div>
+        </div>
+
+       </div>`;
 
     const txns = s.transactions || [];
     const txnEl = document.getElementById('supplier-detail-txns');
