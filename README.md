@@ -1,203 +1,183 @@
-# হালখাতা ডিজিটাল (Halkhata Digital)
-
-**A digital ledger management system for small and medium businesses in Bangladesh.**
-
-Halkhata Digital replaces the traditional handwritten হালখাতা (credit ledger book) used by generations of Bangladeshi shop owners, with a lightweight, Bengali-language web application — while keeping the exact workflow shop owners already understand: one customer, one running balance, one always-current history.
+# হালখাতা ডিজিটাল 📒
+**The Digital Ledger Built for Bangladeshi Shop Owners**
 
 ---
 
-## 📖 Overview
+## 🚀 Quick Start (3 steps)
 
-Small retailers in Bangladesh have long tracked customer credit sales and repayments in a handwritten notebook. It works, but it's fragile — pages get lost or damaged, balances have to be calculated by hand, and there's no way to generate a monthly summary without redoing all the arithmetic.
+### Step 1 — Install Dependencies
+```bash
+cd halkhata
+npm install
+```
 
-Halkhata Digital digitizes that exact process: record a sale, mark it cash or credit, record a repayment later, and let the system handle every calculation, backup, and report automatically.
+### Step 2 — Start the Server
+```bash
+node server.js
+# OR for auto-reload during development:
+npx nodemon server.js
+```
 
----
+### Step 3 — Open in Browser
+```
+http://localhost:3000
+```
 
-## ✨ Features
-
-### Core Ledger
-- Customer management with contact details, credit limits, and an automatically computed **trust score**
-- Cash sales and credit sales, optionally linked to inventory
-- Repayments automatically applied to the customer's **oldest outstanding due first (FIFO)**
-- Balances are never cached — always calculated live from transaction history
-
-### Inventory
-- Batch-aware stock tracking — one product can have multiple purchase batches, each with its own cost price and expiry date
-- Automatic **FIFO stock deduction** by nearest expiry date on every sale
-- Manual batch selection available when needed
-- Low-stock and expiring-soon indicators
-
-### Suppliers
-- A parallel ledger for tracking what the shop owes its own wholesalers
-- Supplier transaction history, mirroring the customer ledger design
-
-### Expenses
-- Categorized expense tracking (rent, salary, transportation, utilities, etc.)
-- Optional receipt photo upload
-- Linked to cash/mobile-service account balances
-
-### Dashboard
-- Live totals: receivable, collected, and overdue amounts
-- Recent transactions feed
-- Ranked list of highest-due customers
-- Short-term income vs. expense trend chart
-
-### Reports & Analytics
-- Monthly and yearly financial reports
-- Interactive charts (Chart.js): revenue vs. expense, daily cash flow, category breakdowns
-- Product, customer, and payment-method analytics
-- Business insights (best month, top customer, highest expense category, etc.)
-
-### Export
-- **CSV export** — client-side generation with UTF-8 BOM encoding for correct Bengali rendering in Excel
-- **PDF export** — print-optimized HTML rendered via the browser's native print-to-PDF, no server-side PDF library required
-
-### Multi-Branch Support
-- One account can manage multiple shop locations
-- Branch-level filtering across dashboard, customers, inventory, and reports
-
-### Authentication & Security
-- Login via phone number or email + a 4-digit PIN
-- PINs hashed with **bcrypt** — never stored or transmitted in plain text
-- Server-side session management via `express-session`
-- Full per-account data isolation — every query is scoped to the authenticated user
-
-### Settings & Data Management
-- Manage shop name, owner name, and branches
-- Secure PIN change with current-PIN verification
-- Full JSON data backup and restore
-
----
-
-## 🛠️ Tech Stack
-
-| Layer | Technology |
-|---|---|
-| Structure | HTML5 |
-| Styling | CSS3 |
-| Client Logic | JavaScript (Vanilla, ES6+) |
-| Data Visualization | Chart.js |
-| Runtime | Node.js |
-| Web Framework | Express.js |
-| Database | SQLite (via `better-sqlite3`) |
-| Password Hashing | bcryptjs |
-| Session Management | express-session |
-| File Uploads | Multer |
-| Unique IDs | uuid |
-| Version Control | Git / GitHub |
-
-No frontend framework, no build step, no external backend-as-a-service — the entire stack is dependency-light by design.
+**Default PIN: `1234`** (change it in Settings after login)
 
 ---
 
 ## 📁 Project Structure
 
+```
 halkhata/
-    ├── server.js            # Express app entry point and all route definitions
-    ├── db.js                # SQLite schema, migrations, and shared query helpers
-    ├── package.json          # Project metadata and dependencies
-    ├── data/                 # SQLite database file
-    ├── uploads/               # Uploaded receipt and expense photos
-    └── public/
-        ├── index.html         # Main single-page application shell
-        ├── style.css           # Global stylesheet (CSS variable–driven theme)
-        ├── script.js            # All frontend logic and API calls
-        ├── login.html           # Login screen
-        └── signup.html          # Registration screen
-
----
-
-## 🚀 Getting Started
-
-### Prerequisites
-- [Node.js](https://nodejs.org/) (v18 or later recommended)
-- npm
-
-### Installation
-
-```bash
-# Clone the repository
-git clone https://github.com/<your-username>/halkhata-digital.git
-cd halkhata-digital
-
-# Install dependencies
-npm install
-
-# Start the server
-node server.js
+├── server.js                  ← Express backend + all REST API routes
+├── package.json               ← Dependencies
+├── .gitignore
+├── data/
+│   ├── customers.json         ← Customer records (auto-created)
+│   ├── transactions.json      ← All transaction records (auto-created)
+│   └── auth.json              ← PIN + shop settings (pre-seeded)
+├── uploads/                   ← Receipt photos stored here
+└── public/
+    ├── index.html             ← Full app UI (login + all pages)
+    ├── style.css              ← Complete stylesheet
+    ├── script.js              ← All frontend logic
+    ├── sw.js                  ← Service Worker (offline support)
+    └── manifest.json          ← PWA manifest (install to homescreen)
 ```
 
-The application will be available at `http://localhost:3000` (or whichever port is configured in `server.js`).
+---
 
-### First-Time Setup
-1. Navigate to the signup page
-2. Register with your name, shop name, phone number or email, and a 4-digit PIN
-3. Log in and start adding customers, inventory, and transactions
+## 🧪 Feature Testing Guide
+
+### 1. Login (PIN Auth)
+- Open `http://localhost:3000`
+- Enter PIN: `1234` using the numpad
+- You'll be taken to the Dashboard
+
+### 2. Load Demo Data
+- On the Dashboard → click **"ডেমো ডেটা লোড করুন"**
+- This populates 4 customers, 6 transactions across 2 shops
+
+### 3. Customer Management
+- Click **"খদ্দের"** in sidebar
+- Click **"+ নতুন খদ্দের"** → fill form → save
+- Click any customer card to open detail view
+- Detail view shows: balance, trust score ring, transaction history
+- Edit: use the edit button; Delete: red "মুছুন" button
+
+### 4. Add Transaction (Credit/Debit)
+- Click **"+ নতুন লেনদেন"** anywhere
+- Toggle between "বাকি দিলাম (ধার)" and "টাকা পেলাম"
+- Select customer, enter amount, optional note + due date
+- Upload receipt photo (optional)
+- Hit **"রেকর্ড করুন"**
+
+### 5. Voice Input (Bangla)
+- Open Add Transaction modal
+- Click the 🎤 microphone button
+- Speak in Bangla: *"পাঁচশো টাকা বাকি"* or *"৫০০"*
+- The amount field auto-fills
+
+### 6. Customer Trust Score
+- Automatically calculated from repayment history
+- Score 0–100: Green (≥70 বিশ্বস্ত), Yellow (40–69 মাঝারি), Red (<40 ঝুঁকিপূর্ণ)
+- Updates live when payments are recorded
+
+### 7. Dashboard Stats
+- Shows: Total Receivable, Total Paid, Overdue Amount, Customer Count
+- Recent transactions list
+- Changes when you switch shop filter
+
+### 8. Overdue (বকেয়া)
+- Click **"বকেয়া"** in sidebar
+- Shows all transactions past their due date
+- Click **"📲 রিমাইন্ড"** → simulates SMS (logs to server console)
+
+### 9. Monthly Report
+- Click **"মাসিক রিপোর্ট"**
+- Bar chart shows debit vs credit per month
+- Summary table with net flow per month
+- Change year from dropdown
+
+### 10. Print Statement
+- Open any customer detail
+- Click **"🖨️ স্টেটমেন্ট প্রিন্ট"**
+- Opens a print-ready window with full transaction history
+
+### 11. Receipt Photo
+- During Add Transaction, choose a photo file
+- Photo is stored in `/uploads/`
+- Appears as thumbnail in transaction list — click to enlarge
+
+### 12. Shop Filter (Multi-Shop)
+- After loading demo data, use "শাখা" dropdown in sidebar
+- Switch between "প্রধান শাখা" and "শাখা-২"
+- Dashboard, customers, transactions, reports all filter by shop
+
+### 13. Offline Mode
+- Disconnect your internet
+- The app shows "অফলাইন" badge and yellow banner
+- Try adding a transaction — it queues locally in localStorage
+- Reconnect → it auto-syncs
+
+### 14. Settings
+- Change shop name, owner name, branches
+- Change PIN (4 digits)
+- Download full JSON backup
+
+### 15. Data Backup
+- Settings → "💾 ব্যাকআপ ডাউনলোড"
+- Or visit `http://localhost:3000/api/backup`
+- Downloads complete JSON file
+
+### 16. PWA Install
+- In Chrome: address bar → Install icon → "ইনস্টল করুন"
+- Works offline after installation
 
 ---
 
-## 🔌 API Overview
+## 📡 REST API Endpoints
 
-All endpoints are prefixed with `/api` and return JSON. Every route except authentication is protected by session middleware and automatically scoped to the logged-in user.
-
-| Group | Endpoints |
-|---|---|
-| Authentication | `/api/auth/signup`, `/api/auth/login`, `/api/auth/check`, `/api/auth/info`, `/api/auth/setup`, `/api/auth/change-pin` |
-| Customers | `/api/customers`, `/api/customers/:id`, `/api/customers/:id/transactions`, `/api/customers/:id/analytics` |
-| Transactions & Sales | `/api/transactions`, `/api/sales` |
-| Products & Inventory | `/api/products`, `/api/products/:id/batches`, `/api/batches/:id` |
-| Suppliers | `/api/suppliers`, `/api/suppliers/:id`, `/api/supplier-transactions` |
-| Expenses | `/api/expenses`, `/api/expenses/:id`, `/api/expenses/:id/photo` |
-| Accounts | `/api/accounts`, `/api/accounts/:id`, `/api/accounts/:id/transactions` |
-| Dashboard & Reports | `/api/dashboard`, `/api/report/monthly`, `/api/report/monthly/:year/:month`, `/api/overdue` |
-| Data Management | `/api/backup`, `/api/restore`, `/api/seed` |
-
----
-
-## 🗄️ Database Schema (Summary)
-
-| Table | Purpose |
-|---|---|
-| `users` | Registered shop owner accounts and hashed PIN credentials |
-| `app_settings` | Per-account shop configuration and branch list |
-| `customers` | Registered customers per shop owner |
-| `transactions` | Every cash sale, credit sale, and repayment |
-| `products` | Aggregate product catalog |
-| `inventory_batches` | Individual purchase batches per product (quantity, cost, expiry) |
-| `suppliers` | Registered suppliers |
-| `supplier_transactions` | Amounts owed to and paid to each supplier |
-| `expenses` | Recorded business expenses |
-| `accounts` | Cash / bKash / Nagad / Rocket / bank balances |
-| `account_transactions` | Ledger of movements into and out of each account |
-
-Every business-data table is scoped by a `userId` foreign key, guaranteeing complete data isolation between shop owner accounts.
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/api/auth/login` | PIN login |
+| POST | `/api/auth/change-pin` | Change PIN |
+| POST | `/api/auth/setup` | Update shop info |
+| GET | `/api/customers` | List all customers |
+| POST | `/api/customers` | Add customer |
+| GET | `/api/customers/:id` | Get customer detail |
+| PUT | `/api/customers/:id` | Update customer |
+| DELETE | `/api/customers/:id` | Delete customer |
+| GET | `/api/customers/:id/transactions` | Customer's transactions |
+| GET | `/api/transactions` | All transactions (filterable) |
+| POST | `/api/transactions` | Record new transaction |
+| POST | `/api/transactions/:id/photo` | Upload receipt photo |
+| GET | `/api/dashboard` | Dashboard stats |
+| GET | `/api/report/monthly` | Monthly P&L |
+| POST | `/api/reminders/send` | Trigger reminder (simulated SMS) |
+| GET | `/api/overdue` | All overdue transactions |
+| GET | `/api/backup` | Download full JSON backup |
+| POST | `/api/restore` | Restore from backup |
+| POST | `/api/seed` | Load demo data |
 
 ---
 
-## 🔒 Security Notes
-
-- PINs are hashed with bcrypt before storage — never stored or logged in plain text
-- Authentication state is server-side (session-based), not stored in browser local storage
-- Every data-access route independently verifies that the requested record belongs to the authenticated user
-- File uploads are restricted by type and stored outside publicly served application code
+## ⚙️ npm packages used
+```
+express     — Web server & routing
+multer      — File upload handling (receipt photos)
+bcryptjs    — PIN hashing
+cors        — Cross-origin headers
+uuid        — Unique IDs for records
+```
 
 ---
 
-## 🔭 Future Work
-
-- Offline-first support
-- Native Android and iOS applications
-- Barcode / QR code scanning for inventory
-- Cloud synchronization
-- SMS notifications for overdue payments
-- Dark mode
-- Advanced analytics and AI-based credit risk prediction
-- Multi-employee accounts with role-based permissions
-- Full multi-language interface support
-
-
-
-## 📄 License
-
-This project was developed for academic purposes as part of Internet & Web Application Project at Jagannath University, Dhaka
+## 🔮 Future Enhancements (from roadmap)
+- Real bKash SMS integration via SSL Commerz or bKash API
+- MongoDB/PostgreSQL for production scale
+- OTP-based phone authentication
+- AI-powered bad debt prediction
+- Micro-loan feature based on ledger history
