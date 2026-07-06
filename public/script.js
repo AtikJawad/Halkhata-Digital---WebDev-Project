@@ -1521,6 +1521,7 @@ const kpiCards = [
 
     // ── Wallet mini cards ─────────────────────────────────
     const PM_ICONS = { cash:'💵', bkash:'📱', nagad:'🟠', rocket:'🚀', bank:'🏦' };
+
     let walletHTML = '';
     if (data.accounts?.length) {
       const totalAbs = data.accounts.reduce((s,a) => s + Math.abs(a.balance), 0) || 1;
@@ -6303,3 +6304,4 @@ async function deleteExpense(id) {
   showToast('মুছে গেছে');
   loadExpenses();
 }
+
